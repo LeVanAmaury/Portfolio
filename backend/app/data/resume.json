@@ -1,0 +1,86 @@
+{
+  "name": "Amaury Levan",
+  "title": "Apprenti Développeur Python",
+  "summary": "Apprenti développeur Python en alternance chez CCMO Mutuelle (Beauvais), je conçois et migre des batchs de traitement de données automatisés. Je suis très intéreressé dans l'automatisation de choses du quotidien, la qualité de code (tests, typage strict) et les nouvelles technologies IA. En formation à l'UPJV d'Amiens.",
+  "email": "amaury.le.van@etud-u.picardie.fr",
+  "github": "https://github.com/LeVanAmaury",
+  "linkedin": null,
+  "location": "Amiens, France / Beauvais, France",
+  "experiences": [
+    {
+      "id": "ccmo-alternance",
+      "company": "CCMO Mutuelle",
+      "role": "Apprenti Développeur",
+      "duration": "Sept. 2025 – Août 2027",
+      "is_current": true,
+      "achievements": [
+        "Migration du logiciel No-Code Talend vers des batchs Python robustes et testés",
+        "Développement d'une bibliothèque interne Python avec des designs paterns adapteurs et factory",
+        "Mise en place de pipelines CI/CD avec Drone CI et SonarQube dans un environnement corporate",
+        "Atteinte d'une couverture de tests > 80% sur l'ensemble des projets livrés",
+        "Traitement de données sensibles : cotisations TNS, Déclarations Sociales Nominatives (DSN)",
+        "Travail en équipe"
+      ],
+      "tags": [
+        "alternance",
+        "Python",
+        "Oracle",
+        "ETL",
+        "CI/CD"
+      ]
+    },
+    {
+      "id": "mairie_de_beauvais",
+      "company": "Mairie de Beauvais",
+      "role": "Agent de ménage",
+      "duration": "Juillet. 2025 – Aout 2025",
+      "is_current": false,
+      "achievements": [
+        "Premiers pas dans le monde du travail et des codes à avoir en entreprise",
+        "Travail en équipe",
+        "Mise en place de discipline et de rigueur dans le travail"
+      ],
+      "tags": [
+        "Job d'été",
+        "Travail temporaire",
+        "Ménage"
+      ]
+    },
+    {
+      "id": "jardin_cimetierre",
+      "company": "Mairie de Beauvais",
+      "role": "Employé espaces verts",
+      "duration": "Aout 2025 – Septembre 2025",
+      "is_current": false,
+      "achievements": [
+        "Travail physique",
+        "Travail en équipe",
+        "Mise en place de discipline et de rigueur dans le travail",
+        "Découverte du monde du travail en plein air dans les espaces verts"
+      ],
+      "tags": [
+        "Job d'été",
+        "Travail temporaire",
+        "Espaces verts"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "id": "upjv",
+      "institution": "Université de Picardie Jules Verne (UPJV)",
+      "degree": "BUT Informatique",
+      "location": "Amiens, France",
+      "duration": "2024 – 2027",
+      "is_current": true
+    },
+    {
+      "id": "langevin",
+      "institution": "Lycée Technologique Paul Langevin (Beauvais)",
+      "degree": "Bacchelor Sciences Technologies de l'industrie et du développement durable (STI2D)",
+      "location": "Beauvais, France",
+      "duration": "2022 – 2024",
+      "is_current": false
+    }
+  ]
+}

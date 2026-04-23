@@ -1,0 +1,86 @@
+[
+  {
+    "id": "python",
+    "name": "Python",
+    "level": 4,
+    "category": "Backend",
+    "icon": "python"
+  },
+  {
+    "id": "pytest",
+    "name": "pytest",
+    "level": 3,
+    "category": "Backend",
+    "icon": "pytest"
+  },
+  {
+    "id": "oracle",
+    "name": "Oracle DB",
+    "level": 3,
+    "category": "Data",
+    "icon": "oracle"
+  },
+  {
+    "id": "sql",
+    "name": "SQL",
+    "level": 3,
+    "category": "Data",
+    "icon": "sql"
+  },
+  {
+    "id": "nextjs",
+    "name": "Next.js",
+    "level": 2,
+    "category": "Frontend",
+    "icon": "nextjs"
+  },
+  {
+    "id": "typescript",
+    "name": "TypeScript",
+    "level": 2,
+    "category": "Frontend",
+    "icon": "typescript"
+  },
+  {
+    "id": "react",
+    "name": "React",
+    "level": 2,
+    "category": "Frontend",
+    "icon": "react"
+  },
+  {
+    "id": "tailwindcss",
+    "name": "Tailwind CSS",
+    "level": 2,
+    "category": "Frontend",
+    "icon": "tailwindcss"
+  },
+  {
+    "id": "docker",
+    "name": "Docker",
+    "level": 3,
+    "category": "DevOps",
+    "icon": "docker"
+  },
+  {
+    "id": "git",
+    "name": "Git",
+    "level": 4,
+    "category": "DevOps",
+    "icon": "git"
+  },
+  {
+    "id": "drone-ci",
+    "name": "Drone CI",
+    "level": 3,
+    "category": "DevOps",
+    "icon": "drone"
+  },
+  {
+    "id": "sonarqube",
+    "name": "SonarQube",
+    "level": 3,
+    "category": "DevOps",
+    "icon": "sonarqube"
+  }
+]
