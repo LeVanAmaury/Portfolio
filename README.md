@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Portfolio Intelligent – Amaury Levan
 
 Portfolio interactif sous forme de **chatbot IA**. Le visiteur pose des questions et le bot génère dynamiquement des composants visuels (cartes de projets, grilles de compétences, fiche de profil) via **Google Gemini** et le **Vercel AI SDK**.
