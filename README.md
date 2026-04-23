@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Portfolio Intelligent – Amaury Levan
 
 Portfolio interactif sous forme de **chatbot IA**. Le visiteur pose des questions et le bot génère dynamiquement des composants visuels (cartes de projets, grilles de compétences, fiche de profil) via **Google Gemini** et le **Vercel AI SDK**.
@@ -125,3 +126,7 @@ Variables d'environnement à configurer sur Vercel :
 - [x] Dockerisation du backend
 - [ ] Déploiement Vercel + Railway
 - [ ] Migration données vers Supabase
+=======
+# Portfolio
+A *PORTFOLIO*
+>>>>>>> 42426d5d177cfd18d2804a94fc66acddb97febdd
