@@ -105,8 +105,8 @@ export async function POST(req: Request) {
         model: groq("llama-3.1-70b-versatile") as any,
         system: SYSTEM_PROMPT,
         messages,
-        tools,
-        maxSteps: 5,
+        // tools,  <-- Désactivé pour test
+        maxSteps: 1, // On limite à 1 étape
         onFinish: (event) => {
           console.log(">>> TEXTE GÉNÉRÉ :", event.text);
           console.log(">>> Flux terminé");
