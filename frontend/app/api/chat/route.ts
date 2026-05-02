@@ -58,8 +58,9 @@ export async function POST(req: Request) {
           if (stack) url.searchParams.set("stack", stack);
           console.log(">>> Appel Backend Projets :", url.toString());
           const res = await fetchWithTimeout(url.toString());
-          console.log(">>> Statut Backend Projets :", res.status);
-          return await res.json();
+          const data = await res.json();
+          console.log(">>> RÉSULTAT PROJETS :", JSON.stringify(data));
+          return data;
         },
       }),
       get_skills: tool({
