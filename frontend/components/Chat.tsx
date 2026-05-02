@@ -2,10 +2,10 @@
 
 import { useChat } from "ai/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2, Bot, User, Sparkles } from "lucide-react";
-import { useRef, useEffect } from "react";
+import { Send, Loader2, Bot, User, Sparkles, Trash2, ThumbsUp, ThumbsDown, Check } from "lucide-react";
+import { useRef, useEffect, useState } from "react";
 import { MarkdownText } from "./MarkdownText";
-import { ProjectsGrid, SkillsGrid, ResumeDisplay } from "@/components/GenerativeUI";
+import { ProjectsGrid, SkillsGrid, ResumeDisplay, ContactSuccess } from "@/components/GenerativeUI";
 import type { Project, Skill, ResumeResponse } from "@/lib/types";
 
 const SUGGESTIONS = [
@@ -17,14 +17,27 @@ const SUGGESTIONS = [
 
 // ─── Rendu d'un message individuel ───────────────────────────────────────────
 
-function MessageBubble({ role, content, toolInvocations, isLast, isLoading }: {
+function MessageBubble({ role, content, toolInvocations, isLast, isLoading, messageId }: {
   role: "user" | "assistant";
   content: string;
   toolInvocations?: Array<{ toolName: string; state: string; result?: unknown }>;
   isLast: boolean;
   isLoading: boolean;
+  messageId: string;
 }) {
   const isUser = role === "user";
+  const [feedback, setFeedback] = useState<"positive" | "negative" | null>(null);
+
+  const handleFeedback = async (isPositive: boolean) => {
+    setFeedback(isPositive ? "positive" : "negative");
+    try {
+      await fetch(`http://localhost:8000/api/feedback?message_id=${messageId}&is_positive=${isPositive}`, {
+        method: "POST",
+      });
+    } catch (e) {
+      console.error("Erreur feedback:", e);
+    }
+  };
   
   // On n'affiche les résultats des outils que si :
   // 1. Ce n'est pas le dernier message (donc il est fini)
@@ -74,9 +87,32 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading }: {
               {tool.toolName === "get_resume" && (
                 <ResumeDisplay resume={tool.result as ResumeResponse} />
               )}
+              {tool.toolName === "submit_contact_form" && (
+                <ContactSuccess />
+              )}
             </div>
           );
         })}
+
+        {/* Feedback buttons for assistant */}
+        {!isUser && !isLoading && content && (
+          <div className="flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={() => handleFeedback(true)}
+              disabled={feedback !== null}
+              className={`p-1 rounded hover:bg-white/5 transition-colors ${feedback === "positive" ? "text-green-400" : "text-zinc-500"}`}
+            >
+              {feedback === "positive" ? <Check size={12} /> : <ThumbsUp size={12} />}
+            </button>
+            <button
+              onClick={() => handleFeedback(false)}
+              disabled={feedback !== null}
+              className={`p-1 rounded hover:bg-white/5 transition-colors ${feedback === "negative" ? "text-red-400" : "text-zinc-500"}`}
+            >
+              <ThumbsDown size={12} />
+            </button>
+          </div>
+        )}
       </div>
     </motion.div>
   );
@@ -85,9 +121,38 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading }: {
 // ─── Composant principal du Chat ──────────────────────────────────────────────
 
 export function Chat() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading, setInput } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading, setInput, setMessages } = useChat({
     api: "/api/chat",
   });
+
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // Charger les messages au montage (uniquement côté client)
+  useEffect(() => {
+    const savedMessages = localStorage.getItem("portfolio-chat-history");
+    if (savedMessages) {
+      try {
+        setMessages(JSON.parse(savedMessages));
+      } catch (e) {
+        console.error("Erreur chargement historique:", e);
+      }
+    }
+    setIsInitialLoad(false);
+  }, [setMessages]);
+
+  // Sauvegarder à chaque changement de messages
+  useEffect(() => {
+    if (!isInitialLoad && messages.length > 0) {
+      localStorage.setItem("portfolio-chat-history", JSON.stringify(messages));
+    }
+  }, [messages, isInitialLoad]);
+
+  const clearChat = () => {
+    if (confirm("Voulez-vous vraiment effacer l'historique de la conversation ?")) {
+      setMessages([]);
+      localStorage.removeItem("portfolio-chat-history");
+    }
+  };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -141,6 +206,7 @@ export function Chat() {
             messages.map((m) => (
               <MessageBubble
                 key={m.id}
+                messageId={m.id}
                 role={m.role as "user" | "assistant"}
                 content={m.content}
                 toolInvocations={m.toolInvocations as Array<{ toolName: string; state: string; result?: unknown }>}
@@ -171,25 +237,41 @@ export function Chat() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Suggestions rapides (après premier message) */}
+      {/* Suggestions rapides & Reset (après premier message) */}
       {!isEmpty && (
-        <div className="px-4 pb-2 flex gap-2 overflow-x-auto scrollbar-none">
-          {SUGGESTIONS.map((s) => (
-            <button
-              key={s}
-              onClick={() => handleSuggestion(s)}
-              className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-zinc-400 hover:bg-white/10 hover:text-white transition-all duration-200"
-            >
-              {s}
-            </button>
-          ))}
+        <div className="px-4 pb-2 flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
+          <div className="flex gap-2">
+            {SUGGESTIONS.map((s) => (
+              <button
+                key={s}
+                onClick={() => handleSuggestion(s)}
+                className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-zinc-400 hover:bg-white/10 hover:text-white transition-all duration-200"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+          
+          <button
+            onClick={clearChat}
+            title="Effacer la conversation"
+            className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+          >
+            <Trash2 size={14} />
+          </button>
         </div>
       )}
 
       {/* Barre de saisie */}
       <div className="px-4 pb-4">
         <form
-          onSubmit={handleSubmit}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (input.trim()) {
+              fetch(`http://localhost:8000/api/analytics/question?question=${encodeURIComponent(input)}`, { method: "POST" });
+              handleSubmit(e);
+            }
+          }}
           className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 backdrop-blur-md
                      focus-within:border-indigo-500/50 focus-within:bg-white/8 transition-all duration-200"
         >

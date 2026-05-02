@@ -7,16 +7,19 @@ import type { Project } from "@/lib/types";
 interface ProjectCardProps {
   project: Project;
   index?: number;
+  onClick?: () => void;
 }
 
-export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
+export function ProjectCard({ project, index = 0, onClick }: ProjectCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.08, ease: "easeOut" }}
-      className="group relative flex flex-col rounded-2xl border border-white/10 bg-white/5 overflow-hidden backdrop-blur-md
-                 hover:border-indigo-500/50 hover:bg-white/8 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/10"
+      onClick={onClick}
+      className={`group relative flex flex-col rounded-2xl border border-white/10 bg-white/5 overflow-hidden backdrop-blur-md
+                 hover:border-indigo-500/50 hover:bg-white/8 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/10
+                 ${onClick ? "cursor-pointer" : ""}`}
     >
       {/* Image de prévisualisation (si présente) */}
       {project.image_url && (

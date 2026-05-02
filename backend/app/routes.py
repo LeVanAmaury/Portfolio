@@ -8,20 +8,12 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Query
 
 from app.models import Project, Skill, SkillCategory, ResumeResponse, Experience
+from app.supabase_client import supabase
 
 router = APIRouter(prefix="/api", tags=["Portfolio"])
 
-# Chemin vers les fichiers de données JSON
-DATA_DIR = Path(__file__).parent / "data"
-
-
-def _load_json(filename: str) -> list | dict:
-    """Charge un fichier JSON depuis le répertoire de données."""
-    filepath = DATA_DIR / filename
-    if not filepath.exists():
-        raise HTTPException(status_code=500, detail=f"Fichier de données manquant : {filename}")
-    with open(filepath, encoding="utf-8") as f:
-        return json.load(f)
+# Les fonctions de chargement JSON sont conservées en secours ou supprimées.
+# Ici nous passons directement à Supabase.
 
 
 @router.get(
@@ -34,12 +26,14 @@ def _load_json(filename: str) -> list | dict:
 def get_projects(
     stack: str | None = Query(default=None, description="Filtrer par technologie (ex: Python)")
 ) -> list[Project]:
-    raw = _load_json("projects.json")
-    projects = [Project.model_validate(p) for p in raw]
+    query = supabase.table("projects").select("*")
+    
     if stack:
-        stack_lower = stack.lower()
-        projects = [p for p in projects if any(stack_lower in s.lower() for s in p.stack)]
-    return projects
+        # Supabase filtering for array containing element
+        query = query.contains("stack", [stack])
+        
+    response = query.execute()
+    return [Project.model_validate(p) for p in response.data]
 
 
 @router.get(
@@ -52,10 +46,13 @@ def get_projects(
 def get_skills(
     category: SkillCategory | None = Query(default=None, description="Filtrer par catégorie")
 ) -> list[Skill]:
-    raw = _load_json("skills.json")
-    skills = [Skill.model_validate(s) for s in raw]
+    query = supabase.table("skills").select("*")
+    
     if category:
-        skills = [s for s in skills if s.category == category]
+        query = query.eq("category", category.value)
+        
+    response = query.execute()
+    skills = [Skill.model_validate(s) for s in response.data]
     return sorted(skills, key=lambda s: s.level, reverse=True)
 
 
@@ -67,6 +64,44 @@ def get_skills(
                 "expériences professionnelles et formation.",
 )
 def get_resume() -> ResumeResponse:
-    raw = _load_json("resume.json")
-    raw["experiences"] = [Experience.model_validate(e) for e in raw.get("experiences", [])]
-    return ResumeResponse.model_validate(raw)
+    # 1. Charger le profil
+    profile_res = supabase.table("profile").select("*").eq("id", "main").single().execute()
+    profile = profile_res.data
+    
+    # 2. Charger les expériences
+    exp_res = supabase.table("experiences").select("*").order("order_index").execute()
+    profile["experiences"] = exp_res.data
+    
+    # 3. Éducation (vide pour l'instant ou chargé depuis une table)
+    profile["education"] = []
+    
+    return ResumeResponse.model_validate(profile)
+
+
+@router.post("/feedback", tags=["Interaction"], summary="Envoyer un feedback")
+def post_feedback(message_id: str, is_positive: bool):
+    """Enregistre un feedback (positif/négatif) pour une réponse du bot."""
+    supabase.table("feedback").insert({
+        "message_id": message_id,
+        "is_positive": is_positive
+    }).execute()
+    return {"status": "success"}
+
+
+@router.post("/analytics/question", tags=["Interaction"], summary="Log une question")
+def post_question(question: str):
+    """Enregistre une question posée pour analyse ultérieure."""
+    supabase.table("analytics_questions").insert({"question": question}).execute()
+    return {"status": "success"}
+
+
+@router.post("/contact", tags=["Interaction"], summary="Envoyer un message de contact")
+def post_contact(name: str, email: str, message: str):
+    """Enregistre une demande de contact dans la base de données."""
+    supabase.table("contact_requests").insert({
+        "name": name,
+        "email": email,
+        "message": message
+    }).execute()
+    # Ici, on pourrait ajouter un envoi d'email via Resend/SendGrid
+    return {"status": "success"}

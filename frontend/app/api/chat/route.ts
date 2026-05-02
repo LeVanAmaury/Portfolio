@@ -16,7 +16,8 @@ const BACKEND_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
 // ─── Prompt Système ───────────────────────────────────────────────────────────
 const SYSTEM_PROMPT = `Tu es l'assistant virtuel d'Amaury Le Van, apprenti développeur en alternance chez CCMO Mutuelle Beauvais et étudiant en BUT 2 Informatique à l'UPJV (Amiens).
 Ton rôle est d'aider les visiteurs à découvrir le profil, les projets et les compétences d'Amaury.
-Utilise les outils (tools) pour afficher les projets et compétences.`;
+Si un visiteur veut contacter Amaury, demande-lui poliment son nom, son email et son message, puis utilise l'outil 'submit_contact_form' pour l'envoyer.
+Utilise les autres outils (tools) pour afficher les projets et compétences.`;
 
 // ─── Handler ─────────────────────────────────────────────────────────────────
 export const maxDuration = 30;
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
     console.log(">>> Requête reçue pour Gemini");
 
     const result = streamText({
-      model: google("gemma-4-31b-it"),
+      model: google("gemini-2.5-flash"),
       system: SYSTEM_PROMPT,
       messages,
       onFinish: () => console.log(">>> Flux terminé avec succès"),
@@ -58,6 +59,22 @@ export async function POST(req: Request) {
           parameters: z.object({}),
           execute: async () => {
             const res = await fetch(`${BACKEND_URL}/api/resume`);
+            return await res.json();
+          },
+        }),
+        submit_contact_form: tool({
+          description: "Envoie un message de contact d'un visiteur à Amaury.",
+          parameters: z.object({
+            name: z.string().describe("Le nom du visiteur"),
+            email: z.string().email().describe("L'email du visiteur"),
+            message: z.string().describe("Le message ou la question"),
+          }),
+          execute: async ({ name, email, message }) => {
+            const url = new URL(`${BACKEND_URL}/api/contact`);
+            url.searchParams.set("name", name);
+            url.searchParams.set("email", email);
+            url.searchParams.set("message", message);
+            const res = await fetch(url.toString(), { method: "POST" });
             return await res.json();
           },
         }),
