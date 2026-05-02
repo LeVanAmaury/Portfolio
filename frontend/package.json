@@ -9,9 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@ai-sdk/google": "latest",
-    "@ai-sdk/openai": "latest",
-    "ai": "latest",
+    "@ai-sdk/google": "1.1.1",
+    "@ai-sdk/openai": "1.1.0",
+    "ai": "4.1.1",
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.400.0",
     "next": "^15.0.0",
