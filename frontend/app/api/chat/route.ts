@@ -131,7 +131,7 @@ export async function POST(req: Request) {
     const tryStream = async (provider: 'groq' | 'google') => {
       const model = provider === 'groq'
         ? groq("llama-3.3-70b-versatile")
-        : google("gemini-1.5-flash");
+        : google("gemini-pro");
 
       return streamText({
         model: model as any,
