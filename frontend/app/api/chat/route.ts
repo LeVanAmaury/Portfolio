@@ -83,10 +83,10 @@ export async function POST(req: Request) {
     };
 
     try {
-      // Tentative avec Gemma en priorité
+      // Tentative avec Gemma en priorité (très performant et gratuit)
       console.log(">>> Tentative avec Google Gemma...");
       const result = streamText({
-        model: google("gemma-2-9b-it"), // Ou "gemma-3-7b-it" selon ce qui est dispo dans ton studio
+        model: google("gemma-2-9b-it") as any,
         system: SYSTEM_PROMPT,
         messages,
         tools,
@@ -95,11 +95,11 @@ export async function POST(req: Request) {
       });
       return result.toDataStreamResponse();
     } catch (e) {
-      console.error("!!! Gemma hors service ou quota épuisé, bascule sur Groq...", e);
-      
+      console.error("!!! Erreur avec Google, bascule sur Groq...", e);
+
       // Roue de secours avec Groq (Llama 3.3 70B)
       const result = streamText({
-        model: groq("llama-3.3-70b-versatile"),
+        model: groq("llama-3.3-70b-versatile") as any,
         system: SYSTEM_PROMPT,
         messages,
         tools,
