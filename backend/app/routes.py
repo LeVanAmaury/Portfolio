@@ -73,11 +73,25 @@ def get_resume() -> ResumeResponse:
     profile_res = supabase.table("profile").select("*").eq("id", "main").single().execute()
     profile = profile_res.data
     
+    # Enrichissement avec les nouveaux champs (si absents de la DB)
+    profile.setdefault("phone", "06 46 29 15 39")
+    profile.setdefault("resume_url", "/CV_Amaury_Le_Van.pdf") # Chemin par défaut
+    
     # 2. Charger les expériences
     exp_res = supabase.table("experiences").select("*").order("order_index").execute()
-    profile["experiences"] = exp_res.data
+    experiences = exp_res.data
     
-    # 3. Éducation (vide pour l'instant ou chargé depuis une table)
+    # Enrichissement spécifique (ex: CCMO)
+    for exp in experiences:
+        if "CCMO" in exp["company"]:
+            exp.setdefault("location", "Beauvais, France")
+            exp.setdefault("website_url", "https://www.ccmo.fr")
+        elif "Amiens" in exp.get("location", "") or "UPJV" in exp["company"]:
+             exp.setdefault("location", "Amiens, France")
+
+    profile["experiences"] = experiences
+    
+    # 3. Éducation
     profile["education"] = []
     
     return ResumeResponse.model_validate(profile)
@@ -115,7 +129,7 @@ def post_contact(name: str, email: str, message: str):
         try:
             resend.Emails.send({
                 "from": "Portfolio <onboarding@resend.dev>",
-                "to": "amaury.levan@gmail.com", # Remplace par ton vrai email si besoin
+                "to": "amaury24120606@gmail.com", # Remplace par ton vrai email si besoin
                 "subject": f"Nouveau message de {name} via le Chatbot",
                 "html": f"""
                     <h3>Nouveau message de contact</h3>

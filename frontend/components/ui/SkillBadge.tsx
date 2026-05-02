@@ -40,14 +40,14 @@ export function SkillBadge({ skill, index = 0 }: SkillBadgeProps) {
       <span className="text-sm font-semibold leading-none">{skill.name}</span>
 
       {/* Barre de niveau */}
-      <div className="flex gap-1" aria-label={`Niveau ${skill.level}/5`}>
+      <div className="flex gap-1.5" aria-label={`Niveau ${skill.level}/5`}>
         {Array.from({ length: 5 }).map((_, i) => (
           <motion.div
             key={i}
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
             transition={{ delay: index * 0.04 + i * 0.06, duration: 0.25, ease: "easeOut" }}
-            className={`h-1 flex-1 rounded-full origin-left ${
+            className={`h-2 w-2 rounded-full ${
               i < skill.level ? "bg-current opacity-80" : "bg-current opacity-15"
             }`}
           />

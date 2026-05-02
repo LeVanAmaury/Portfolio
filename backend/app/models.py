@@ -45,6 +45,8 @@ class Experience(BaseModel):
     is_current: bool = Field(default=False, description="True si c'est le poste actuel")
     achievements: list[str] = Field(description="Liste des réalisations / responsabilités")
     tags: list[str] = Field(default_factory=list, description="Tags (alternance, stage, etc.)")
+    location: str | None = Field(default=None, description="Ville / Région")
+    website_url: str | None = Field(default=None, description="Lien vers le site de l'entreprise")
 
 
 class ResumeResponse(BaseModel):
@@ -53,8 +55,10 @@ class ResumeResponse(BaseModel):
     title: str
     summary: str
     email: str | None = None
+    phone: str | None = None
     github: str | None = None
     linkedin: str | None = None
     location: str
     experiences: list[Experience]
     education: list[dict]
+    resume_url: str | None = Field(default=None, description="Lien vers le CV PDF")

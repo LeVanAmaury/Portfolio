@@ -62,7 +62,7 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading, mess
       </div>
 
       {/* Contenu */}
-      <div className={`flex flex-col gap-3 max-w-[85%] ${isUser ? "items-end" : "items-start"}`}>
+      <div className={`group flex flex-col gap-3 max-w-[85%] ${isUser ? "items-end" : "items-start"}`}>
         {/* Texte */}
         {(content || (toolInvocations && toolInvocations.length > 0)) ? (
           <div className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed

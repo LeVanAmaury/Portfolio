@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Briefcase, Calendar, MapPin, CheckCircle2 } from "lucide-react";
+import { X, Briefcase, Calendar, MapPin, CheckCircle2, ExternalLink } from "lucide-react";
 import type { Experience } from "@/lib/types";
 import { useEffect } from "react";
 
@@ -65,6 +65,23 @@ export function ExperienceModal({ experience, onClose }: ExperienceModalProps) {
                     <Calendar size={14} className="text-indigo-400/70" />
                     {experience.duration}
                   </div>
+                  {experience.location && (
+                    <div className="flex items-center gap-1.5">
+                      <MapPin size={14} className="text-indigo-400/70" />
+                      {experience.location}
+                    </div>
+                  )}
+                  {experience.website_url && (
+                    <a 
+                      href={experience.website_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 hover:text-indigo-300 transition-colors"
+                    >
+                      <ExternalLink size={14} className="text-indigo-400/70" />
+                      Site web
+                    </a>
+                  )}
                   {experience.tags.map(tag => (
                     <span key={tag} className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-zinc-300">
                       {tag}

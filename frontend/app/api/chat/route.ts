@@ -14,6 +14,10 @@ const groq = createOpenAI({
 const openrouter = createOpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_API!,
+  headers: {
+    "HTTP-Referer": "https://github.com/LeVanAmaury/Portfolio",
+    "X-Title": "Portfolio Amaury",
+  }
 });
 
 const BACKEND_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
@@ -21,13 +25,20 @@ const BACKEND_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
 // ─── Prompt Système ───────────────────────────────────────────────────────────
 const SYSTEM_PROMPT = `Tu es l'assistant virtuel d'Amaury Le Van. Ton rôle est d'aider les visiteurs à découvrir son parcours, ses projets et ses compétences.
 
+COORDONNÉES D'AMAURY :
+- Email : levanamaury@gmail.com
+- LinkedIn : https://www.linkedin.com/in/amaury-le-van-6ab822346/
+- GitHub : github.com/LeVanAmaury
+- Téléphone : 06 46 29 15 39
+- Localisation : Amiens / Beauvais
+
 DIRECTIVES CRITIQUES :
 1. COMPÉTENCES : Si on te demande ses compétences techniques, ce qu'il sait faire ou ses technos, appelle TOUJOURS 'get_skills'.
 2. PROJETS : Si on te demande ses projets, réalisations ou ce qu'il a construit, appelle TOUJOURS 'get_projects'.
 3. PARCOURS/EXPÉRIENCE : Si on te demande son parcours, son CV, ses études, son alternance, des informations sur sa vie,ses postes passés ou actuels appelle TOUJOURS 'get_resume'.
-4. AUCUN BLA-BLA PRÉLIMINAIRE : Ne génère aucun texte d'introduction si tu vas appeler un outil. Appelle l'outil immédiatement.
+4. AUCUN BLA-BLA PRÉLIMINAIRE : Ne génère aucun texte d'introduction si tu vas appeler un outil. Appelle l'outil immédiatement. Ne fais pas de tableau à l'aide de '|', utilise des puces ou des nombres pour faire des listes.
 5. SYNTHÈSE : Une fois les données reçues, fais une réponse structurée et chaleureuse.
-6. CONTACT : Pour un message de contact ou si l'utilisateur veut écrire à Amaury, utilise 'submit_contact_form'.`;
+6. CONTACT : Pour un message de contact, utilise 'submit_contact_form'. Mentionne aussi ses réseaux s'il le demande.`;
 
 // ─── Handler ─────────────────────────────────────────────────────────────────
 export const maxDuration = 30;
@@ -131,7 +142,7 @@ export async function POST(req: Request) {
     const tryStream = async (provider: 'groq' | 'openrouter') => {
       const model = provider === 'groq'
         ? groq("llama-3.3-70b-versatile")
-        : openrouter("google/gemini-2.0-flash-exp:free"); // Modèle 100% gratuit sur OpenRouter
+        : openrouter("openrouter/free"); // Sélectionne automatiquement la meilleure IA gratuite disponible
 
       return streamText({
         model: model as any,
@@ -143,18 +154,18 @@ export async function POST(req: Request) {
     };
 
     try {
-      if (!process.env.GROQ_API_KEY) throw new Error("No Groq Key");
-      console.log(">>> Tentative Groq...");
-      const result = await tryStream('groq');
+      if (!process.env.OPENROUTER_API) throw new Error("No OpenRouter Key");
+      console.log(">>> Tentative OpenRouter...");
+      const result = await tryStream('openrouter');
       return result.toDataStreamResponse();
     } catch (e: any) {
-      console.warn(">>> Groq en échec (quota ?), bascule sur OpenRouter...", e.message);
+      console.warn(">>> OpenRouter en échec, bascule sur Groq...", e.message);
       try {
-        const result = await tryStream('openrouter');
+        const result = await tryStream('groq');
         return result.toDataStreamResponse();
-      } catch (orError: any) {
-        console.error("!!! ÉCHEC FALLBACK OPENROUTER :", orError.message);
-        throw orError;
+      } catch (groqError: any) {
+        console.error("!!! ÉCHEC FALLBACK GÉNÉRAL :", groqError.message);
+        throw groqError;
       }
     }
 

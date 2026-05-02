@@ -31,6 +31,8 @@ export interface Experience {
   is_current: boolean;
   achievements: string[];
   tags: string[];
+  location?: string;
+  website_url?: string;
 }
 
 export interface ResumeResponse {
@@ -38,9 +40,11 @@ export interface ResumeResponse {
   title: string;
   summary: string;
   email: string | null;
+  phone: string | null;
   github: string | null;
   linkedin: string | null;
   location: string;
   experiences: Experience[];
   education: Record<string, unknown>[];
+  resume_url: string | null;
 }
