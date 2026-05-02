@@ -31,11 +31,12 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",  # Next.js dev
-        "https://*.vercel.app",  # Déploiement Vercel
+        "http://localhost:3000",
+        "https://*.vercel.app",
+        "https://portfolio-amaury.vercel.app", # On pourra ajouter ton futur domaine ici
     ],
     allow_credentials=True,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
