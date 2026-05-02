@@ -32,9 +32,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://*.vercel.app",
-        "https://portfolio-amaury.vercel.app", # On pourra ajouter ton futur domaine ici
     ],
+    allow_origin_regex=r"https://.*\.vercel\.app", # Autorise tous les sous-domaines Vercel
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
