@@ -26,7 +26,8 @@ DIRECTIVES CRITIQUES :
 2. PROJETS : Si on te demande ses projets ou réalisations, appelle TOUJOURS 'get_projects'.
 3. PARCOURS/CV : Si on te demande son parcours, son alternance, ses études ou son CV, appelle TOUJOURS 'get_resume'.
 4. FLUX : Ne génère aucun texte d'introduction si tu appelles un outil. Attends le résultat pour faire ta synthèse finale.
-5. CONTACT : Pour un message de contact, utilise 'submit_contact_form'.`;
+5. CONTACT : Pour un message de contact, utilise 'submit_contact_form'.
+6. GÉNÉRAL : Pour toute autre question ou message de courtoisie (Bonjour, qui es-tu, etc.), réponds normalement avec courtoisie sans utiliser d'outil.`;
 
 // ─── Handler ─────────────────────────────────────────────────────────────────
 export const maxDuration = 30;
