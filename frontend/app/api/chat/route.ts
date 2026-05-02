@@ -96,28 +96,35 @@ export async function POST(req: Request) {
     };
 
     try {
-      console.log(">>> Lancement stream Gemini 1.5 Flash...");
+      console.log(">>> Tentative avec Google...");
       const result = await streamText({
-        model: google("models/gemini-2.5-flash"),
+        model: google("models/gemini-1.5-flash"), // Je remets 1.5 pour la stabilité
         system: SYSTEM_PROMPT,
         messages,
         tools,
         maxSteps: 5,
         onFinish: (event) => {
           console.log(">>> TEXTE GÉNÉRÉ :", event.text);
-          if (event.toolCalls && event.toolCalls.length > 0) {
-            console.log(">>> OUTILS APPELÉS :", event.toolCalls.map(tc => tc.toolName).join(", "));
-          }
-          console.log(">>> Flux terminé");
+          console.log(">>> Flux terminé (Google)");
         },
       });
       return result.toDataStreamResponse();
     } catch (e: any) {
-      console.error("!!! ERREUR :", e.message);
-      return new Response(JSON.stringify({ error: e.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
+      console.error("!!! Erreur Google, bascule sur Groq...", e.message);
+
+      // Roue de secours : Groq
+      const result = await streamText({
+        model: groq("llama-3.3-70b-versatile") as any,
+        system: SYSTEM_PROMPT,
+        messages,
+        tools,
+        maxSteps: 5,
+        onFinish: (event) => {
+          console.log(">>> TEXTE GÉNÉRÉ :", event.text);
+          console.log(">>> Flux terminé (Groq)");
+        },
       });
+      return result.toDataStreamResponse();
     }
   } catch (error: any) {
     console.error("!!! ERREUR DANS LA ROUTE CHAT :", error);
