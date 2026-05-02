@@ -2,18 +2,18 @@
  * Route API Next.js – Point d'entrée du chatbot IA
  */
 
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { streamText, tool } from "ai";
 import { z } from "zod";
 
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY!,
-});
-
 const groq = createOpenAI({
   baseURL: "https://api.groq.com/openai/v1",
   apiKey: process.env.GROQ_API_KEY!,
+});
+
+const openrouter = createOpenAI({
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY!,
 });
 
 const BACKEND_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
@@ -127,11 +127,11 @@ export async function POST(req: Request) {
       }),
     };
 
-    // Stratégie : Essayer Groq d'abord, fallback sur Gemini si erreur (quota, etc.)
-    const tryStream = async (provider: 'groq' | 'google') => {
+    // Stratégie : Essayer Groq d'abord, fallback sur OpenRouter si erreur (quota, etc.)
+    const tryStream = async (provider: 'groq' | 'openrouter') => {
       const model = provider === 'groq'
         ? groq("llama-3.3-70b-versatile")
-        : google("gemini-pro");
+        : openrouter("google/gemini-2.0-flash-exp:free"); // Modèle 100% gratuit sur OpenRouter
 
       return streamText({
         model: model as any,
@@ -148,13 +148,13 @@ export async function POST(req: Request) {
       const result = await tryStream('groq');
       return result.toDataStreamResponse();
     } catch (e: any) {
-      console.warn(">>> Groq en échec (quota ?), bascule sur Gemini...", e.message);
+      console.warn(">>> Groq en échec (quota ?), bascule sur OpenRouter...", e.message);
       try {
-        const result = await tryStream('google');
+        const result = await tryStream('openrouter');
         return result.toDataStreamResponse();
-      } catch (geminiError: any) {
-        console.error("!!! ÉCHEC FALLBACK GEMINI :", geminiError.message);
-        throw geminiError;
+      } catch (orError: any) {
+        console.error("!!! ÉCHEC FALLBACK OPENROUTER :", orError.message);
+        throw orError;
       }
     }
 
