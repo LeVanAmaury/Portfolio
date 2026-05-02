@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     console.log(">>> Requête reçue pour Gemini");
 
     const result = streamText({
-      model: google("gemini-2.5-flash"),
+      model: google("gemini-2.0-flash"),
       system: SYSTEM_PROMPT,
       messages,
       onFinish: () => console.log(">>> Flux terminé avec succès"),
