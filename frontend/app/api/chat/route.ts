@@ -96,17 +96,13 @@ export async function POST(req: Request) {
     };
 
     try {
-      if (!process.env.GROQ_API_KEY) {
-        throw new Error("GROQ_API_KEY manquante");
-      }
-
-      console.log(">>> Lancement stream Groq...");
-      const result = streamText({
-        model: groq("llama-3.1-70b-versatile") as any,
+      console.log(">>> Lancement stream Gemini 1.5 Flash...");
+      const result = await streamText({
+        model: google("models/gemini-2.5-flash"),
         system: SYSTEM_PROMPT,
         messages,
-        // tools,  <-- Désactivé pour test
-        maxSteps: 1, // On limite à 1 étape
+        tools,
+        maxSteps: 5,
         onFinish: (event) => {
           console.log(">>> TEXTE GÉNÉRÉ :", event.text);
           console.log(">>> Flux terminé");
