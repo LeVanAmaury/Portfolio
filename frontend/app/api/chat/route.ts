@@ -51,14 +51,23 @@ export async function POST(req: Request) {
 
     const tools = {
       get_projects: tool({
-        description: "Récupère les projets d'Amaury.",
+        description: "Récupère les projets d'Amaury. N'utilise le paramètre 'stack' QUE si l'utilisateur mentionne une technologie précise (ex: React, Python). Sinon, laisse vide.",
         parameters: z.object({ stack: z.string().optional() }),
         execute: async ({ stack }) => {
           const url = new URL(`${BACKEND_URL}/api/projects`);
           if (stack) url.searchParams.set("stack", stack);
           console.log(">>> Appel Backend Projets :", url.toString());
-          const res = await fetchWithTimeout(url.toString());
-          const data = await res.json();
+          
+          let res = await fetchWithTimeout(url.toString());
+          let data = await res.json();
+          
+          // Si on a filtré et que c'est vide, on renvoie tout par sécurité
+          if (stack && (!data || data.length === 0)) {
+            console.log(">>> Filtre vide, on récupère tout...");
+            res = await fetchWithTimeout(`${BACKEND_URL}/api/projects`);
+            data = await res.json();
+          }
+          
           console.log(">>> RÉSULTAT PROJETS :", JSON.stringify(data));
           return data;
         },
