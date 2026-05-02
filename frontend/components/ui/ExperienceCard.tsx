@@ -7,16 +7,19 @@ import type { Experience } from "@/lib/types";
 interface ExperienceCardProps {
   experience: Experience;
   index?: number;
+  onClick?: () => void;
 }
 
-export function ExperienceCard({ experience, index = 0 }: ExperienceCardProps) {
+export function ExperienceCard({ experience, index = 0, onClick }: ExperienceCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
-      className="relative rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-md
-                 hover:border-violet-500/40 transition-colors duration-300"
+      onClick={onClick}
+      className={`relative rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-md
+                 hover:border-violet-500/40 transition-colors duration-300
+                 ${onClick ? "cursor-pointer" : ""}`}
     >
       {/* Badge "En poste" */}
       {experience.is_current && (

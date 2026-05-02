@@ -5,12 +5,17 @@ Expose les endpoints /api/projects, /api/skills et /api/resume.
 
 import json
 from pathlib import Path
+import os
+import resend
 from fastapi import APIRouter, HTTPException, Query
 
 from app.models import Project, Skill, SkillCategory, ResumeResponse, Experience
 from app.supabase_client import supabase
 
 router = APIRouter(prefix="/api", tags=["Portfolio"])
+
+# Configuration Resend
+resend.api_key = os.environ.get("RESEND_API_KEY")
 
 # Les fonctions de chargement JSON sont conservées en secours ou supprimées.
 # Ici nous passons directement à Supabase.
@@ -97,11 +102,30 @@ def post_question(question: str):
 
 @router.post("/contact", tags=["Interaction"], summary="Envoyer un message de contact")
 def post_contact(name: str, email: str, message: str):
-    """Enregistre une demande de contact dans la base de données."""
+    """Enregistre une demande de contact et envoie un email."""
+    # 1. Enregistrement en base de données (Supabase)
     supabase.table("contact_requests").insert({
         "name": name,
         "email": email,
         "message": message
     }).execute()
-    # Ici, on pourrait ajouter un envoi d'email via Resend/SendGrid
+    
+    # 2. Envoi de l'email réel (si la clé API est présente)
+    if resend.api_key:
+        try:
+            resend.Emails.send({
+                "from": "Portfolio <onboarding@resend.dev>",
+                "to": "amaury.levan@gmail.com", # Remplace par ton vrai email si besoin
+                "subject": f"Nouveau message de {name} via le Chatbot",
+                "html": f"""
+                    <h3>Nouveau message de contact</h3>
+                    <p><strong>Nom :</strong> {name}</p>
+                    <p><strong>Email :</strong> {email}</p>
+                    <p><strong>Message :</strong></p>
+                    <p>{message}</p>
+                """
+            })
+        except Exception as e:
+            print(f"Erreur d'envoi d'email : {e}")
+
     return {"status": "success"}

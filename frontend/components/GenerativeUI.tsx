@@ -12,9 +12,10 @@ import { LayoutGrid, Cpu, User, Mail, CheckCircle2 } from "lucide-react";
 
 import { ProjectCard } from "@/components/ui/ProjectCard";
 import { ProjectModal } from "@/components/ui/ProjectModal";
+import { ExperienceModal } from "@/components/ui/ExperienceModal";
 import { SkillBadge } from "@/components/ui/SkillBadge";
 import { ExperienceCard } from "@/components/ui/ExperienceCard";
-import type { Project, Skill, ResumeResponse } from "@/lib/types";
+import type { Project, Skill, ResumeResponse, Experience } from "@/lib/types";
 import { useState } from "react";
 
 // ─── Sous-composants de section ───────────────────────────────────────────────
@@ -86,6 +87,8 @@ export function SkillsGrid({ skills }: { skills: Skill[] }) {
 // ─── Résumé ───────────────────────────────────────────────────────────────────
 
 export function ResumeDisplay({ resume }: { resume: ResumeResponse }) {
+  const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full space-y-4">
       {/* Profil */}
@@ -110,11 +113,21 @@ export function ResumeDisplay({ resume }: { resume: ResumeResponse }) {
           <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Expériences</p>
           <div className="space-y-3">
             {resume.experiences.map((e, i) => (
-              <ExperienceCard key={e.id} experience={e} index={i} />
+              <ExperienceCard 
+                key={e.id} 
+                experience={e} 
+                index={i} 
+                onClick={() => setSelectedExperience(e)} 
+              />
             ))}
           </div>
         </div>
       )}
+
+      <ExperienceModal 
+        experience={selectedExperience} 
+        onClose={() => setSelectedExperience(null)} 
+      />
     </motion.div>
   );
 }
