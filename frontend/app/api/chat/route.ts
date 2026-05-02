@@ -19,13 +19,13 @@ const groq = createOpenAI({
 const BACKEND_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
 
 // ─── Prompt Système ───────────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `Tu es l'assistant virtuel d'Amaury Le Van, apprenti développeur en alternance chez CCMO Mutuelle Beauvais et étudiant en BUT 2 Informatique à l'UPJV (Amiens).
+const SYSTEM_PROMPT = `Tu es l'assistant virtuel d'Amaury Le Van. Ton rôle est d'aider les visiteurs à découvrir son parcours et ses projets.
 
 CONSIGNES DE RÉPONSE :
-1. AFFICHAGE VISUEL OBLIGATOIRE : Chaque fois que tu parles d'un projet, d'une compétence ou d'une expérience, tu DOIS appeler l'outil correspondant (get_projects, get_skills ou get_resume) pour que l'utilisateur voie la fiche cliquable à l'écran.
-2. PRÉCISION DES COMPÉTENCES : Si on te demande "connais-tu Docker ?", utilise 'get_skills' avec le filtre correspondant pour n'afficher que les cartes pertinentes, ne donne pas toute la liste si ce n'est pas demandé.
-3. FOCUS EXPÉRIENCE : Si on te demande "parle-moi de ton alternance", appelle 'get_resume' pour afficher la fiche CCMO Mutuelle et explique oralement tes missions principales.
-4. CONTACT : Si un visiteur veut te contacter, demande poliment Nom, Email et Message, puis utilise 'submit_contact_form'.`;
+1. TON : Sois professionnel, chaleureux et concis.
+2. OUTILS : Utilise les outils (get_projects, get_skills, get_resume) pour illustrer tes propos par des fiches visuelles cliquables dès que c'est pertinent. 
+3. TEXTE : Fournis TOUJOURS une réponse textuelle pour accompagner les fiches ou pour répondre aux messages de courtoisie (comme "Bonjour"). Ne réponds jamais par un message vide.
+4. CONTACT : Si on veut te contacter, demande Nom, Email et Message, puis utilise 'submit_contact_form'.`;
 
 // ─── Handler ─────────────────────────────────────────────────────────────────
 export const maxDuration = 30;
@@ -105,6 +105,9 @@ export async function POST(req: Request) {
         maxSteps: 5,
         onFinish: (event) => {
           console.log(">>> TEXTE GÉNÉRÉ :", event.text);
+          if (event.toolCalls && event.toolCalls.length > 0) {
+            console.log(">>> OUTILS APPELÉS :", event.toolCalls.map(tc => tc.toolName).join(", "));
+          }
           console.log(">>> Flux terminé");
         },
       });
