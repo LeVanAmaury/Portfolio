@@ -106,32 +106,33 @@ export async function POST(req: Request) {
     };
 
     try {
-      console.log(">>> Tentative avec Google...");
+      console.log(">>> Tentative avec Groq (Priorité)...");
       const result = await streamText({
-        model: google("models/gemini-1.5-flash"), // Je remets 1.5 pour la stabilité
-        system: SYSTEM_PROMPT,
+        model: groq("llama-3.3-70b-versatile") as any,
+        system: SYSTEM_PROMPT + "\nIMPORTANT : Tu DOIS utiliser un outil dès que l'utilisateur pose une question sur tes projets, compétences ou parcours.",
         messages,
         tools,
         maxSteps: 5,
         onFinish: (event) => {
-          console.log(">>> TEXTE GÉNÉRÉ :", event.text);
-          console.log(">>> Flux terminé (Google)");
+          console.log(">>> TEXTE GÉNÉRÉ (Groq) :", event.text);
+          if (event.toolCalls) console.log(">>> OUTILS APPELÉS :", event.toolCalls.map(tc => tc.toolName).join(", "));
+          console.log(">>> Flux terminé (Groq)");
         },
       });
       return result.toDataStreamResponse();
     } catch (e: any) {
-      console.error("!!! Erreur Google, bascule sur Groq...", e.message);
+      console.error("!!! Erreur Groq, bascule sur Google...", e.message);
 
-      // Roue de secours : Groq
       const result = await streamText({
-        model: groq("llama-3.3-70b-versatile") as any,
+        model: google("gemini-1.5-flash-latest"),
         system: SYSTEM_PROMPT,
         messages,
         tools,
         maxSteps: 5,
         onFinish: (event) => {
-          console.log(">>> TEXTE GÉNÉRÉ :", event.text);
-          console.log(">>> Flux terminé (Groq)");
+          console.log(">>> TEXTE GÉNÉRÉ (Google) :", event.text);
+          if (event.toolCalls) console.log(">>> OUTILS APPELÉS :", event.toolCalls.map(tc => tc.toolName).join(", "));
+          console.log(">>> Flux terminé (Google)");
         },
       });
       return result.toDataStreamResponse();
