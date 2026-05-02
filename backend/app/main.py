@@ -26,16 +26,18 @@ app = FastAPI(
     },
 )
 
+import os
+
 # ─── CORS ────────────────────────────────────────────────────────────────────
-# Autoriser le frontend Next.js (dev + prod) à appeler l'API
+# On autorise le frontend local et les déploiements Vercel
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-    ],
-    allow_origin_regex=r"https://.*\.vercel\.app", # Autorise tous les sous-domaines Vercel
+    allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"https://.*\.vercel\.app", 
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 

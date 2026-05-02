@@ -33,13 +33,18 @@ DIRECTIVES CRITIQUES :
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
+  // Vérification des clés API
+  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+    return new Response(JSON.stringify({ error: "Clé API Google manquante" }), { status: 500 });
+  }
+
   try {
     const { messages } = await req.json();
-    console.log(">>> Requête reçue pour Gemini");
+    console.log(`>>> Requête reçue (${messages.length} messages)`);
 
-    const fetchWithTimeout = async (url: string, options: any = {}) => {
+    const fetchWithTimeout = async (url: string, options: RequestInit = {}) => {
       const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      const id = setTimeout(() => controller.abort(), 10000);
       try {
         const response = await fetch(url, { ...options, signal: controller.signal });
         clearTimeout(id);
@@ -52,105 +57,105 @@ export async function POST(req: Request) {
 
     const tools = {
       get_projects: tool({
-        description: "Récupère les projets d'Amaury. N'utilise le paramètre 'stack' QUE si l'utilisateur mentionne une technologie précise (ex: React, Python). Sinon, laisse vide.",
+        description: "Récupère les projets d'Amaury. Filtre par 'stack' si précisé.",
         parameters: z.object({ stack: z.string().optional() }),
         execute: async ({ stack }) => {
           const url = new URL(`${BACKEND_URL}/api/projects`);
           if (stack) url.searchParams.set("stack", stack);
-          console.log(">>> Appel Backend Projets :", url.toString());
-          
-          let res = await fetchWithTimeout(url.toString());
-          let data = await res.json();
-          
-          // Si on a filtré et que c'est vide, on renvoie tout par sécurité
-          if (stack && (!data || data.length === 0)) {
-            console.log(">>> Filtre vide, on récupère tout...");
-            res = await fetchWithTimeout(`${BACKEND_URL}/api/projects`);
-            data = await res.json();
+
+          try {
+            const res = await fetchWithTimeout(url.toString());
+            let data = await res.json();
+
+            if (stack && (!data || data.length === 0)) {
+              const fallbackRes = await fetchWithTimeout(`${BACKEND_URL}/api/projects`);
+              data = await fallbackRes.json();
+            }
+            return data;
+          } catch (err) {
+            console.error("Error fetching projects:", err);
+            return { error: "Impossible de récupérer les projets" };
           }
-          
-          console.log(">>> RÉSULTAT PROJETS :", JSON.stringify(data));
-          return data;
         },
       }),
       get_skills: tool({
-        description: "Récupère les compétences d'Amaury.",
+        description: "Récupère les compétences techniques d'Amaury.",
         parameters: z.object({ category: z.string().optional() }),
         execute: async ({ category }) => {
           const url = new URL(`${BACKEND_URL}/api/skills`);
           if (category) url.searchParams.set("category", category);
-          console.log(">>> Appel Backend Skills :", url.toString());
-          const res = await fetchWithTimeout(url.toString());
-          console.log(">>> Statut Backend Skills :", res.status);
-          return await res.json();
+          try {
+            const res = await fetchWithTimeout(url.toString());
+            return await res.json();
+          } catch (err) {
+            console.error("Error fetching skills:", err);
+            return { error: "Impossible de récupérer les compétences" };
+          }
         },
       }),
       get_resume: tool({
-        description: "Récupère le profil complet d'Amaury (expériences, formation).",
+        description: "Récupère le profil complet (expériences, formation).",
         parameters: z.object({}),
         execute: async () => {
-          const url = `${BACKEND_URL}/api/resume`;
-          console.log(">>> Appel Backend CV :", url);
-          const res = await fetchWithTimeout(url);
-          console.log(">>> Statut Backend CV :", res.status);
-          return await res.json();
+          try {
+            const res = await fetchWithTimeout(`${BACKEND_URL}/api/resume`);
+            return await res.json();
+          } catch (err) {
+            console.error("Error fetching resume:", err);
+            return { error: "Impossible de récupérer le CV" };
+          }
         },
       }),
       submit_contact_form: tool({
-        description: "Envoie un message de contact d'un visiteur à Amaury.",
+        description: "Envoie un message de contact.",
         parameters: z.object({
-          name: z.string().describe("Le nom du visiteur"),
-          email: z.string().email().describe("L'email du visiteur"),
-          message: z.string().describe("Le message ou la question"),
+          name: z.string(),
+          email: z.string().email(),
+          message: z.string(),
         }),
-        execute: async ({ name, email, message }) => {
+        execute: async (params) => {
           const url = new URL(`${BACKEND_URL}/api/contact`);
-          url.searchParams.set("name", name);
-          url.searchParams.set("email", email);
-          url.searchParams.set("message", message);
-          console.log(">>> Envoi Formulaire Contact :", url.toString());
-          const res = await fetchWithTimeout(url.toString(), { method: "POST" });
-          console.log(">>> Statut Backend Contact :", res.status);
-          return await res.json();
+          Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+          try {
+            const res = await fetchWithTimeout(url.toString(), { method: "POST" });
+            return await res.json();
+          } catch (err) {
+            console.error("Error submitting contact form:", err);
+            return { error: "Échec de l'envoi du message" };
+          }
         },
       }),
     };
 
-    try {
-      console.log(">>> Tentative avec Groq (Priorité)...");
-      const result = await streamText({
-        model: groq("llama-3.3-70b-versatile") as any,
-        system: SYSTEM_PROMPT + "\nIMPORTANT : Tu DOIS utiliser un outil dès que l'utilisateur pose une question sur tes projets, compétences ou parcours.",
-        messages,
-        tools,
-        maxSteps: 5,
-        onFinish: (event) => {
-          console.log(">>> TEXTE GÉNÉRÉ (Groq) :", event.text);
-          if (event.toolCalls) console.log(">>> OUTILS APPELÉS :", event.toolCalls.map(tc => tc.toolName).join(", "));
-          console.log(">>> Flux terminé (Groq)");
-        },
-      });
-      return result.toDataStreamResponse();
-    } catch (e: any) {
-      console.error("!!! Erreur Groq, bascule sur Google...", e.message);
+    // Stratégie : Essayer Groq d'abord, fallback sur Gemini si erreur (quota, etc.)
+    const tryStream = async (provider: 'groq' | 'google') => {
+      const model = provider === 'groq'
+        ? groq("llama-3.3-70b-versatile")
+        : google("gemini-1.5-flash-latest");
 
-      const result = await streamText({
-        model: google("gemini-1.5-flash-latest"),
-        system: SYSTEM_PROMPT,
+      return streamText({
+        model: model as any,
+        system: SYSTEM_PROMPT + (provider === 'groq' ? "\nIMPORTANT : Utilise un outil pour les projets/compétences/CV." : ""),
         messages,
         tools,
         maxSteps: 5,
-        onFinish: (event) => {
-          console.log(">>> TEXTE GÉNÉRÉ (Google) :", event.text);
-          if (event.toolCalls) console.log(">>> OUTILS APPELÉS :", event.toolCalls.map(tc => tc.toolName).join(", "));
-          console.log(">>> Flux terminé (Google)");
-        },
       });
+    };
+
+    try {
+      if (!process.env.GROQ_API_KEY) throw new Error("No Groq Key");
+      console.log(">>> Tentative Groq...");
+      const result = await tryStream('groq');
+      return result.toDataStreamResponse();
+    } catch (e) {
+      console.warn(">>> Groq en échec, bascule sur Gemini...");
+      const result = await tryStream('google');
       return result.toDataStreamResponse();
     }
+
   } catch (error: any) {
-    console.error("!!! ERREUR DANS LA ROUTE CHAT :", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("!!! ERREUR CRITIQUE ROUTE CHAT :", error);
+    return new Response(JSON.stringify({ error: "Une erreur interne est survenue" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

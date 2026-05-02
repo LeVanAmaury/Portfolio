@@ -30,8 +30,9 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading, mess
 
   const handleFeedback = async (isPositive: boolean) => {
     setFeedback(isPositive ? "positive" : "negative");
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
     try {
-      await fetch(`http://localhost:8000/api/feedback?message_id=${messageId}&is_positive=${isPositive}`, {
+      await fetch(`${backendUrl}/api/feedback?message_id=${messageId}&is_positive=${isPositive}`, {
         method: "POST",
       });
     } catch (e) {
@@ -278,7 +279,8 @@ export function Chat() {
           onSubmit={(e) => {
             e.preventDefault();
             if (input.trim()) {
-              fetch(`http://localhost:8000/api/analytics/question?question=${encodeURIComponent(input)}`, { method: "POST" });
+              const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+              fetch(`${backendUrl}/api/analytics/question?question=${encodeURIComponent(input)}`, { method: "POST" }).catch(e => console.error("Analytics error:", e));
               handleSubmit(e);
             }
           }}

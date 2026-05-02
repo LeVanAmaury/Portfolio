@@ -124,8 +124,5 @@ Variables d'environnement à configurer sur Vercel :
 - [x] Tests unitaires pytest (couverture > 80%)
 - [x] Dockerisation du backend
 - [ ] Déploiement Vercel + Railway
-- [ ] Migration données vers Supabase
-=======
-# Portfolio
-A *PORTFOLIO*
->>>>>>> 42426d5d177cfd18d2804a94fc66acddb97febdd
+- [ ] Migration données vers Supabase (Terminé)
+- [ ] Ajout d'une section Blog
