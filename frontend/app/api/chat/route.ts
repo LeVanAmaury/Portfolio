@@ -97,21 +97,24 @@ export async function POST(req: Request) {
 
     try {
       if (!process.env.GROQ_API_KEY) {
-        throw new Error("GROQ_API_KEY est manquante dans les variables d'environnement.");
+        throw new Error("GROQ_API_KEY manquante");
       }
 
-      console.log(">>> Tentative avec Groq (Clé détectée)...");
+      console.log(">>> Lancement stream Groq...");
       const result = streamText({
-        model: groq("llama-3.3-70b-versatile") as any,
+        model: groq("llama-3.1-70b-versatile") as any,
         system: SYSTEM_PROMPT,
         messages,
         tools,
         maxSteps: 5,
-        onFinish: () => console.log(">>> Groq : Flux terminé"),
+        onFinish: (event) => {
+          console.log(">>> TEXTE GÉNÉRÉ :", event.text);
+          console.log(">>> Flux terminé");
+        },
       });
       return result.toDataStreamResponse();
     } catch (e: any) {
-      console.error("!!! ERREUR GROQ :", e.message);
+      console.error("!!! ERREUR :", e.message);
       return new Response(JSON.stringify({ error: e.message }), {
         status: 500,
         headers: { "Content-Type": "application/json" },
