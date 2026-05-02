@@ -24,7 +24,7 @@ const SYSTEM_PROMPT = `Tu es l'assistant virtuel d'Amaury Le Van. Ton rôle est 
 DIRECTIVES CRITIQUES :
 1. COMPÉTENCES : Si on te demande ses compétences techniques, ce qu'il sait faire ou ses technos, appelle TOUJOURS 'get_skills'.
 2. PROJETS : Si on te demande ses projets, réalisations ou ce qu'il a construit, appelle TOUJOURS 'get_projects'.
-3. PARCOURS/EXPÉRIENCE : Si on te demande son parcours, son CV, ses études, son alternance, ou des détails sur ses postes passés ou actuels (ex: "rôle à la CCMO", "expérience chez..."), appelle TOUJOURS 'get_resume'.
+3. PARCOURS/EXPÉRIENCE : Si on te demande son parcours, son CV, ses études, son alternance, des informations sur sa vie,ses postes passés ou actuels appelle TOUJOURS 'get_resume'.
 4. AUCUN BLA-BLA PRÉLIMINAIRE : Ne génère aucun texte d'introduction si tu vas appeler un outil. Appelle l'outil immédiatement.
 5. SYNTHÈSE : Une fois les données reçues, fais une réponse structurée et chaleureuse.
 6. CONTACT : Pour un message de contact ou si l'utilisateur veut écrire à Amaury, utilise 'submit_contact_form'.`;
@@ -131,7 +131,7 @@ export async function POST(req: Request) {
     const tryStream = async (provider: 'groq' | 'google') => {
       const model = provider === 'groq'
         ? groq("llama-3.3-70b-versatile")
-        : google("gemini-1.5-flash-latest");
+        : google("gemini-1.5-flash");
 
       return streamText({
         model: model as any,
@@ -147,10 +147,15 @@ export async function POST(req: Request) {
       console.log(">>> Tentative Groq...");
       const result = await tryStream('groq');
       return result.toDataStreamResponse();
-    } catch (e) {
-      console.warn(">>> Groq en échec, bascule sur Gemini...");
-      const result = await tryStream('google');
-      return result.toDataStreamResponse();
+    } catch (e: any) {
+      console.warn(">>> Groq en échec (quota ?), bascule sur Gemini...", e.message);
+      try {
+        const result = await tryStream('google');
+        return result.toDataStreamResponse();
+      } catch (geminiError: any) {
+        console.error("!!! ÉCHEC FALLBACK GEMINI :", geminiError.message);
+        throw geminiError;
+      }
     }
 
   } catch (error: any) {
