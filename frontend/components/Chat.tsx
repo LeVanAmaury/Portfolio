@@ -63,26 +63,36 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading, mess
       {/* Contenu */}
       <div className={`flex flex-col gap-3 max-w-[85%] ${isUser ? "items-end" : "items-start"}`}>
         {/* Texte */}
-        {content && (
+        {(content || (toolInvocations && toolInvocations.length > 0)) ? (
           <div className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed
             ${isUser
               ? "bg-indigo-500/20 text-indigo-50 border border-indigo-500/30 rounded-tr-sm"
               : "bg-white/8 text-zinc-100 border border-white/10 rounded-tl-sm"}`}
           >
-            {!isUser ? <MarkdownText content={content} /> : content}
+            {isUser ? content : (content ? <MarkdownText content={content} /> : <span className="text-zinc-500 italic">Analyse en cours...</span>)}
           </div>
-        )}
+        ) : null}
 
         {/* Composants Générés (Tool Results) */}
         {showTools && toolInvocations?.map((tool, i) => {
+          if (tool.state === "call") {
+            return (
+              <div key={i} className="flex items-center gap-2 text-[10px] text-zinc-500 animate-pulse">
+                <Loader2 size={10} className="animate-spin" />
+                Récupération des données ({tool.toolName})...
+              </div>
+            );
+          }
+          
           if (tool.state !== "result" || !tool.result) return null;
+          
           return (
-            <div key={i} className="w-full max-w-2xl">
+            <div key={i} className="w-full max-w-2xl mt-2">
               {tool.toolName === "get_projects" && (
-                <ProjectsGrid projects={tool.result as Project[]} />
+                <ProjectsGrid projects={(tool.result as any).projects || tool.result} />
               )}
               {tool.toolName === "get_skills" && (
-                <SkillsGrid skills={tool.result as Skill[]} />
+                <SkillsGrid skills={(tool.result as any).skills || tool.result} />
               )}
               {tool.toolName === "get_resume" && (
                 <ResumeDisplay resume={tool.result as ResumeResponse} />
