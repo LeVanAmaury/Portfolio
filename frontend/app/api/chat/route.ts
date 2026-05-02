@@ -35,6 +35,19 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
     console.log(">>> Requête reçue pour Gemini");
 
+    const fetchWithTimeout = async (url: string, options: any = {}) => {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(id);
+        return response;
+      } catch (e) {
+        clearTimeout(id);
+        throw e;
+      }
+    };
+
     const tools = {
       get_projects: tool({
         description: "Récupère les projets d'Amaury.",
@@ -42,7 +55,7 @@ export async function POST(req: Request) {
         execute: async ({ stack }) => {
           const url = new URL(`${BACKEND_URL}/api/projects`);
           if (stack) url.searchParams.set("stack", stack);
-          const res = await fetch(url.toString());
+          const res = await fetchWithTimeout(url.toString());
           return await res.json();
         },
       }),
@@ -52,7 +65,7 @@ export async function POST(req: Request) {
         execute: async ({ category }) => {
           const url = new URL(`${BACKEND_URL}/api/skills`);
           if (category) url.searchParams.set("category", category);
-          const res = await fetch(url.toString());
+          const res = await fetchWithTimeout(url.toString());
           return await res.json();
         },
       }),
@@ -60,7 +73,7 @@ export async function POST(req: Request) {
         description: "Récupère le profil complet d'Amaury (expériences, formation).",
         parameters: z.object({}),
         execute: async () => {
-          const res = await fetch(`${BACKEND_URL}/api/resume`);
+          const res = await fetchWithTimeout(`${BACKEND_URL}/api/resume`);
           return await res.json();
         },
       }),
@@ -76,7 +89,7 @@ export async function POST(req: Request) {
           url.searchParams.set("name", name);
           url.searchParams.set("email", email);
           url.searchParams.set("message", message);
-          const res = await fetch(url.toString(), { method: "POST" });
+          const res = await fetchWithTimeout(url.toString(), { method: "POST" });
           return await res.json();
         },
       }),
