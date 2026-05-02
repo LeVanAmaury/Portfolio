@@ -56,7 +56,9 @@ export async function POST(req: Request) {
         execute: async ({ stack }) => {
           const url = new URL(`${BACKEND_URL}/api/projects`);
           if (stack) url.searchParams.set("stack", stack);
+          console.log(">>> Appel Backend Projets :", url.toString());
           const res = await fetchWithTimeout(url.toString());
+          console.log(">>> Statut Backend Projets :", res.status);
           return await res.json();
         },
       }),
@@ -66,7 +68,9 @@ export async function POST(req: Request) {
         execute: async ({ category }) => {
           const url = new URL(`${BACKEND_URL}/api/skills`);
           if (category) url.searchParams.set("category", category);
+          console.log(">>> Appel Backend Skills :", url.toString());
           const res = await fetchWithTimeout(url.toString());
+          console.log(">>> Statut Backend Skills :", res.status);
           return await res.json();
         },
       }),
@@ -74,7 +78,10 @@ export async function POST(req: Request) {
         description: "Récupère le profil complet d'Amaury (expériences, formation).",
         parameters: z.object({}),
         execute: async () => {
-          const res = await fetchWithTimeout(`${BACKEND_URL}/api/resume`);
+          const url = `${BACKEND_URL}/api/resume`;
+          console.log(">>> Appel Backend CV :", url);
+          const res = await fetchWithTimeout(url);
+          console.log(">>> Statut Backend CV :", res.status);
           return await res.json();
         },
       }),
@@ -90,7 +97,9 @@ export async function POST(req: Request) {
           url.searchParams.set("name", name);
           url.searchParams.set("email", email);
           url.searchParams.set("message", message);
+          console.log(">>> Envoi Formulaire Contact :", url.toString());
           const res = await fetchWithTimeout(url.toString(), { method: "POST" });
+          console.log(">>> Statut Backend Contact :", res.status);
           return await res.json();
         },
       }),
