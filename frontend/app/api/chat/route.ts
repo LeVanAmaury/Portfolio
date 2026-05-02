@@ -83,29 +83,26 @@ export async function POST(req: Request) {
     };
 
     try {
-      // Tentative avec Groq en priorité
-      console.log(">>> Tentative avec Groq...");
+      if (!process.env.GROQ_API_KEY) {
+        throw new Error("GROQ_API_KEY est manquante dans les variables d'environnement.");
+      }
+
+      console.log(">>> Tentative avec Groq (Clé détectée)...");
       const result = streamText({
         model: groq("llama-3.3-70b-versatile") as any,
         system: SYSTEM_PROMPT,
         messages,
         tools,
         maxSteps: 5,
-        onFinish: () => console.log(">>> Gemma : Flux terminé"),
+        onFinish: () => console.log(">>> Groq : Flux terminé"),
       });
       return result.toDataStreamResponse();
-    } catch (e) {
-      console.error("!!! Bascule sur Google Gemma...", e);
-
-      const result = streamText({
-        model: google("gemma-2-9b-it") as any,
-        system: SYSTEM_PROMPT,
-        messages,
-        tools,
-        maxSteps: 5,
-        onFinish: () => console.log(">>> Gemma : Flux terminé"),
+    } catch (e: any) {
+      console.error("!!! ERREUR GROQ :", e.message);
+      return new Response(JSON.stringify({ error: e.message }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
       });
-      return result.toDataStreamResponse();
     }
   } catch (error: any) {
     console.error("!!! ERREUR DANS LA ROUTE CHAT :", error);
