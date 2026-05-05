@@ -2,58 +2,29 @@
 
 import { useChat } from "ai/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2, Bot, User, Sparkles, Trash2, ThumbsUp, ThumbsDown, Check } from "lucide-react";
-import { useRef, useEffect, useState } from "react";
+import { Send, Loader2, Bot, User, Sparkles, Trash2, AlertCircle } from "lucide-react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { MarkdownText } from "./MarkdownText";
 import { ProjectsGrid, SkillsGrid, ResumeDisplay, ContactSuccess } from "@/components/GenerativeUI";
-import type { Project, Skill, ResumeResponse } from "@/lib/types";
+import type { ResumeResponse } from "@/lib/types";
 
 const SUGGESTIONS = [
-  "Quels sont tes projets ?",
-  "Ton rôle à la CCMO ?",
-  "Tes compétences techniques ?",
-  "Parle-moi de ton alternance",
+  { text: "Quels sont tes projets ?", emoji: "🚀" },
+  { text: "Ton rôle à la CCMO ?", emoji: "💼" },
+  { text: "Tes compétences techniques ?", emoji: "⚡" },
+  { text: "Parle-moi de ton alternance", emoji: "🎓" },
 ];
 
 // ─── Rendu d'un message individuel ───────────────────────────────────────────
 
-function MessageBubble({ role, content, toolInvocations, isLast, isLoading, messageId }: {
+function MessageBubble({ role, content, toolInvocations, isLast, isLoading }: {
   role: "user" | "assistant";
   content: string;
   toolInvocations?: Array<{ toolName: string; state: string; result?: unknown }>;
   isLast: boolean;
   isLoading: boolean;
-  messageId: string;
 }) {
   const isUser = role === "user";
-  const [feedback, setFeedback] = useState<"positive" | "negative" | null>(null);
-
-  const handleFeedback = async (isPositive: boolean) => {
-    setFeedback(isPositive ? "positive" : "negative");
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-    
-    if (!backendUrl) return;
-
-    // Avoid hitting localhost from production
-    const isLocalhost = backendUrl.includes("localhost");
-    const isProduction = typeof window !== "undefined" && !window.location.hostname.includes("localhost");
-    if (isLocalhost && isProduction) return;
-
-    try {
-      await fetch(`${backendUrl}/api/feedback?message_id=${messageId}&is_positive=${isPositive}`, {
-        method: "POST",
-      });
-    } catch (e) {
-      // Log only in development or if it's not a fetch error
-      if (!isProduction) {
-        console.error("Erreur feedback:", e);
-      }
-    }
-  };
-  
-  // On n'affiche les résultats des outils que si :
-  // 1. Ce n'est pas le dernier message (donc il est fini)
-  // 2. OU c'est le dernier message mais le chargement est terminé
   const showTools = !isLast || !isLoading;
 
   return (
@@ -66,22 +37,31 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading, mess
       {/* Avatar */}
       <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center border
         ${isUser
-          ? "bg-indigo-500/20 border-indigo-500/30"
-          : "bg-violet-500/20 border-violet-500/30"}`}
+          ? "bg-orange-100 dark:bg-orange-500/20 border-orange-200 dark:border-orange-500/30"
+          : "bg-purple-100 dark:bg-violet-500/20 border-purple-200 dark:border-violet-500/30"}`}
       >
-        {isUser ? <User size={14} className="text-indigo-400" /> : <Bot size={14} className="text-violet-400" />}
+        {isUser
+          ? <User size={14} className="text-orange-600 dark:text-orange-400" />
+          : <Bot size={14} className="text-purple-600 dark:text-violet-400" />
+        }
       </div>
 
       {/* Contenu */}
-      <div className={`group flex flex-col gap-3 max-w-[85%] ${isUser ? "items-end" : "items-start"}`}>
+      <div className={`flex flex-col gap-3 max-w-[85%] ${isUser ? "items-end" : "items-start"}`}>
         {/* Texte */}
         {(content || (toolInvocations && toolInvocations.length > 0)) ? (
           <div className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed
             ${isUser
-              ? "bg-indigo-500/20 text-indigo-50 border border-indigo-500/30 rounded-tr-sm"
-              : "bg-white/8 text-zinc-100 border border-white/10 rounded-tl-sm"}`}
+              ? "bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-tr-sm shadow-lg shadow-orange-500/20"
+              : "bg-white dark:bg-white/8 text-stone-800 dark:text-slate-100 border border-stone-200 dark:border-white/10 rounded-tl-sm shadow-sm"}`}
           >
-            {isUser ? content : (content ? <MarkdownText content={content} /> : <span className="text-zinc-500 italic">Analyse en cours...</span>)}
+            {isUser
+              ? content
+              : (content
+                ? <MarkdownText content={content} />
+                : <span className="text-stone-400 dark:text-zinc-500 italic">Analyse en cours...</span>
+              )
+            }
           </div>
         ) : null}
 
@@ -89,15 +69,15 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading, mess
         {showTools && toolInvocations?.map((tool, i) => {
           if (tool.state === "call") {
             return (
-              <div key={i} className="flex items-center gap-2 text-[10px] text-zinc-500 animate-pulse">
+              <div key={i} className="flex items-center gap-2 text-[10px] text-stone-500 dark:text-zinc-500 animate-pulse">
                 <Loader2 size={10} className="animate-spin" />
                 Récupération des données ({tool.toolName})...
               </div>
             );
           }
-          
+
           if (tool.state !== "result" || !tool.result) return null;
-          
+
           return (
             <div key={i} className="w-full max-w-2xl mt-2">
               {tool.toolName === "get_projects" && (
@@ -115,26 +95,6 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading, mess
             </div>
           );
         })}
-
-        {/* Feedback buttons for assistant */}
-        {!isUser && !isLoading && content && (
-          <div className="flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={() => handleFeedback(true)}
-              disabled={feedback !== null}
-              className={`p-1 rounded hover:bg-white/5 transition-colors ${feedback === "positive" ? "text-green-400" : "text-zinc-500"}`}
-            >
-              {feedback === "positive" ? <Check size={12} /> : <ThumbsUp size={12} />}
-            </button>
-            <button
-              onClick={() => handleFeedback(false)}
-              disabled={feedback !== null}
-              className={`p-1 rounded hover:bg-white/5 transition-colors ${feedback === "negative" ? "text-red-400" : "text-zinc-500"}`}
-            >
-              <ThumbsDown size={12} />
-            </button>
-          </div>
-        )}
       </div>
     </motion.div>
   );
@@ -143,57 +103,59 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading, mess
 // ─── Composant principal du Chat ──────────────────────────────────────────────
 
 export function Chat() {
+  const [error, setError] = useState<string | null>(null);
+
   const { messages, input, handleInputChange, handleSubmit, isLoading, setInput, setMessages } = useChat({
     api: "/api/chat",
-    // Envoyer seulement les 10 derniers messages pour éviter de saturer le timeout de Vercel (10s Hobby)
-    experimental_prepareRequestBody: ({ messages }) => {
-      return { messages: messages.slice(-10) };
+    onError: (err) => {
+      console.error("Chat error:", err);
+      setError("L'IA n'a pas pu répondre. Réessayez dans quelques secondes ! 🔄");
+      setTimeout(() => setError(null), 5000);
+    },
+    onFinish: () => {
+      setError(null);
     },
   });
 
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  // Charger les messages au montage (uniquement côté client)
+  // Charger les messages sauvegardés
   useEffect(() => {
-    const savedMessages = localStorage.getItem("portfolio-chat-history");
-    if (savedMessages) {
+    const saved = localStorage.getItem("portfolio-chat-history");
+    if (saved) {
       try {
-        setMessages(JSON.parse(savedMessages));
-      } catch (e) {
-        console.error("Erreur chargement historique:", e);
+        setMessages(JSON.parse(saved));
+      } catch {
+        localStorage.removeItem("portfolio-chat-history");
       }
     }
     setIsInitialLoad(false);
   }, [setMessages]);
 
-  // Sauvegarder à chaque changement de messages
+  // Sauvegarder les messages
   useEffect(() => {
     if (!isInitialLoad && messages.length > 0) {
       localStorage.setItem("portfolio-chat-history", JSON.stringify(messages));
     }
   }, [messages, isInitialLoad]);
 
-  const clearChat = () => {
-    if (confirm("Voulez-vous vraiment effacer l'historique de la conversation ?")) {
-      setMessages([]);
-      localStorage.removeItem("portfolio-chat-history");
-    }
-  };
+  const clearChat = useCallback(() => {
+    setMessages([]);
+    localStorage.removeItem("portfolio-chat-history");
+  }, [setMessages]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll logic
+  // Auto-scroll intelligent
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    // Check if user is near bottom (within 100px)
     const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 150;
-
     if (isAtBottom || isLoading) {
       requestAnimationFrame(() => {
-        messagesEndRef.current?.scrollIntoView({ 
+        messagesEndRef.current?.scrollIntoView({
           behavior: isLoading ? "auto" : "smooth",
           block: "end"
         });
@@ -201,19 +163,15 @@ export function Chat() {
     }
   }, [messages, isLoading]);
 
-  const handleSuggestion = (text: string) => {
-    setInput(text);
-  };
-
   const isEmpty = messages.length === 0;
 
   return (
     <div className="flex flex-col h-full">
 
       {/* Zone des messages */}
-      <div 
+      <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-4 py-6 space-y-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10"
+        className="flex-1 overflow-y-auto px-4 py-6 space-y-6"
       >
         <AnimatePresence>
           {isEmpty ? (
@@ -222,26 +180,39 @@ export function Chat() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center h-full text-center gap-4 pt-16"
+              className="flex flex-col items-center justify-center h-full text-center gap-5 pt-16"
             >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/30 to-violet-500/30 border border-white/10 flex items-center justify-center">
-                <Sparkles size={28} className="text-indigo-300" />
+              {/* Icône animée */}
+              <div className="relative">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-500 to-purple-600 flex items-center justify-center shadow-xl shadow-orange-500/25 animate-float">
+                  <Sparkles size={32} className="text-white" />
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-400 border-2 border-white dark:border-slate-900 flex items-center justify-center">
+                  <span className="text-[10px]">👋</span>
+                </div>
               </div>
+
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">Bonjour, je suis Amaury !</h2>
-                <p className="text-zinc-400 text-sm max-w-sm">
-                  Posez-moi n&apos;importe quelle question sur mon parcours, mes projets ou mes compétences.
+                <h2 className="text-2xl font-bold text-stone-900 dark:text-white mb-2">
+                  Hey ! Moi c&apos;est Amaury 🔥
+                </h2>
+                <p className="text-stone-500 dark:text-slate-400 text-sm max-w-md">
+                  Curieux, passionné et toujours prêt à apprendre. Posez-moi n&apos;importe quelle question sur mon parcours, mes projets ou mes compétences !
                 </p>
               </div>
+
               {/* Suggestions */}
-              <div className="flex flex-wrap gap-2 justify-center mt-4">
+              <div className="flex flex-wrap gap-2 justify-center mt-2">
                 {SUGGESTIONS.map((s) => (
                   <button
-                    key={s}
-                    onClick={() => handleSuggestion(s)}
-                    className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/10 hover:border-indigo-500/40 hover:text-white transition-all duration-200"
+                    key={s.text}
+                    onClick={() => setInput(s.text)}
+                    className="rounded-xl border border-stone-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-2 text-xs text-stone-700 dark:text-slate-300
+                               hover:bg-orange-50 dark:hover:bg-white/10 hover:border-orange-300 dark:hover:border-orange-500/40 hover:text-orange-700 dark:hover:text-orange-300
+                               transition-all duration-200 shadow-sm hover:shadow-md"
                   >
-                    {s}
+                    <span className="mr-1.5">{s.emoji}</span>
+                    {s.text}
                   </button>
                 ))}
               </div>
@@ -250,7 +221,6 @@ export function Chat() {
             messages.map((m) => (
               <MessageBubble
                 key={m.id}
-                messageId={m.id}
                 role={m.role as "user" | "assistant"}
                 content={m.content}
                 toolInvocations={m.toolInvocations as Array<{ toolName: string; state: string; result?: unknown }>}
@@ -268,13 +238,26 @@ export function Chat() {
             animate={{ opacity: 1 }}
             className="flex items-center gap-3"
           >
-            <div className="w-8 h-8 rounded-full bg-violet-500/20 border border-violet-500/30 flex items-center justify-center shrink-0">
-              <Bot size={14} className="text-violet-400" />
+            <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-violet-500/20 border border-purple-200 dark:border-violet-500/30 flex items-center justify-center shrink-0">
+              <Bot size={14} className="text-purple-600 dark:text-violet-400" />
             </div>
-            <div className="rounded-2xl rounded-tl-sm bg-white/8 border border-white/10 px-4 py-2.5 flex items-center gap-2">
-              <Loader2 size={14} className="text-violet-400 animate-spin" />
-              <span className="text-zinc-400 text-xs">En train de réfléchir…</span>
+            <div className="rounded-2xl rounded-tl-sm bg-white dark:bg-white/8 border border-stone-200 dark:border-white/10 px-4 py-2.5 flex items-center gap-2 shadow-sm">
+              <Loader2 size={14} className="text-purple-500 dark:text-violet-400 animate-spin" />
+              <span className="text-stone-500 dark:text-slate-400 text-xs">En train de réfléchir…</span>
             </div>
+          </motion.div>
+        )}
+
+        {/* Message d'erreur */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="flex items-center gap-3 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 text-xs"
+          >
+            <AlertCircle size={16} />
+            {error}
           </motion.div>
         )}
 
@@ -287,19 +270,21 @@ export function Chat() {
           <div className="flex gap-2">
             {SUGGESTIONS.map((s) => (
               <button
-                key={s}
-                onClick={() => handleSuggestion(s)}
-                className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-zinc-400 hover:bg-white/10 hover:text-white transition-all duration-200"
+                key={s.text}
+                onClick={() => setInput(s.text)}
+                className="shrink-0 rounded-full border border-stone-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-1 text-[11px]
+                           text-stone-500 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-white/10 hover:text-orange-600 dark:hover:text-orange-300
+                           transition-all duration-200"
               >
-                {s}
+                {s.emoji} {s.text}
               </button>
             ))}
           </div>
-          
+
           <button
             onClick={clearChat}
             title="Effacer la conversation"
-            className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+            className="p-1.5 rounded-lg text-stone-400 dark:text-zinc-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-200"
           >
             <Trash2 size={14} />
           </button>
@@ -312,26 +297,12 @@ export function Chat() {
           onSubmit={(e) => {
             e.preventDefault();
             if (input.trim()) {
-              const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-              
-              // Only attempt analytics if backend URL is configured and not pointing to localhost in production
-              const isLocalhost = backendUrl?.includes("localhost") || !backendUrl;
-              const isProduction = typeof window !== "undefined" && !window.location.hostname.includes("localhost");
-              
-              if (backendUrl && !(isLocalhost && isProduction)) {
-                fetch(`${backendUrl}/api/analytics/question?question=${encodeURIComponent(input)}`, { 
-                  method: "POST",
-                  mode: 'no-cors' // Use no-cors to avoid some preflight issues if analytics is simple
-                }).catch(() => {
-                  // Silent fail for analytics to not pollute console
-                });
-              }
-              
               handleSubmit(e);
             }
           }}
-          className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 backdrop-blur-md
-                     focus-within:border-indigo-500/50 focus-within:bg-white/8 transition-all duration-200"
+          className="flex items-center gap-3 rounded-2xl border border-stone-200 dark:border-white/15 bg-white dark:bg-white/5 px-4 py-3
+                     backdrop-blur-md shadow-sm focus-within:border-orange-400 dark:focus-within:border-orange-500/50 focus-within:shadow-md
+                     focus-within:shadow-orange-500/10 transition-all duration-200"
         >
           <input
             id="chat-input"
@@ -339,15 +310,16 @@ export function Chat() {
             onChange={handleInputChange}
             placeholder="Posez votre question…"
             autoComplete="off"
-            className="flex-1 bg-transparent text-sm text-white placeholder-zinc-500 outline-none"
+            className="flex-1 bg-transparent text-sm text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-slate-500 outline-none"
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
             id="chat-send-btn"
             aria-label="Envoyer"
-            className="w-8 h-8 rounded-xl flex items-center justify-center bg-indigo-500 hover:bg-indigo-400
-                       disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shrink-0"
+            className="w-8 h-8 rounded-xl flex items-center justify-center bg-gradient-to-br from-orange-500 to-orange-600
+                       hover:from-orange-400 hover:to-orange-500 shadow-lg shadow-orange-500/25
+                       disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-200 shrink-0"
           >
             <Send size={14} className="text-white" />
           </button>

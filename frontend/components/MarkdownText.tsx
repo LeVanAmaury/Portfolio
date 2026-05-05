@@ -5,41 +5,53 @@ interface MarkdownTextProps {
 }
 
 /**
- * Un composant ultra-léger pour transformer le Markdown de base en HTML.
- * Évite d'installer des bibliothèques externes quand le proxy bloque tout !
+ * Composant léger pour transformer du Markdown basique en HTML.
  */
 export function MarkdownText({ content }: MarkdownTextProps) {
-  // 1. Découper par lignes
   const lines = content.split('\n');
 
   return (
-    <div className="space-y-2 text-sm md:text-base leading-relaxed">
+    <div className="space-y-2 text-sm leading-relaxed">
       {lines.map((line, i) => {
-        let processedLine = line.trim();
+        const processedLine = line.trim();
 
-        // Gestion des Titres (### Titre)
+        // Titres
         if (processedLine.startsWith('### ')) {
-          return <h3 key={i} className="text-lg font-bold text-indigo-400 mt-4 mb-2">{processedLine.replace('### ', '')}</h3>;
+          return <h3 key={i} className="text-base font-bold text-orange-600 dark:text-orange-400 mt-3 mb-1">{processedLine.replace('### ', '')}</h3>;
         }
         if (processedLine.startsWith('## ')) {
-          return <h2 key={i} className="text-xl font-bold text-indigo-300 mt-6 mb-3">{processedLine.replace('## ', '')}</h2>;
+          return <h2 key={i} className="text-lg font-bold text-orange-700 dark:text-orange-300 mt-4 mb-2">{processedLine.replace('## ', '')}</h2>;
         }
 
-        // Gestion des Listes (* Point)
-        if (processedLine.startsWith('* ')) {
+        // Listes (* ou -)
+        if (processedLine.startsWith('* ') || processedLine.startsWith('- ')) {
           return (
             <div key={i} className="flex gap-2 ml-2">
-              <span className="text-indigo-500">•</span>
-              <span dangerouslySetInnerHTML={{ __html: formatBold(processedLine.replace('* ', '')) }} />
+              <span className="text-orange-500 dark:text-orange-400">•</span>
+              <span dangerouslySetInnerHTML={{ __html: formatInline(processedLine.replace(/^[*-] /, '')) }} />
             </div>
           );
         }
 
-        // Paragraphe classique avec gras
+        // Listes numérotées
+        const numberedMatch = processedLine.match(/^(\d+)\.\s(.+)/);
+        if (numberedMatch) {
+          return (
+            <div key={i} className="flex gap-2 ml-2">
+              <span className="text-orange-500 dark:text-orange-400 font-semibold text-xs mt-0.5">{numberedMatch[1]}.</span>
+              <span dangerouslySetInnerHTML={{ __html: formatInline(numberedMatch[2]) }} />
+            </div>
+          );
+        }
+
+        // Paragraphe vide
+        if (processedLine === "") {
+          return <div key={i} className="h-1.5" />;
+        }
+
+        // Paragraphe classique
         return (
-          <p key={i} className={processedLine === "" ? "h-2" : ""} 
-             dangerouslySetInnerHTML={{ __html: formatBold(processedLine) }} 
-          />
+          <p key={i} dangerouslySetInnerHTML={{ __html: formatInline(processedLine) }} />
         );
       })}
     </div>
@@ -47,9 +59,11 @@ export function MarkdownText({ content }: MarkdownTextProps) {
 }
 
 /**
- * Fonction simple pour transformer les **gras** en <strong>
+ * Transforme le formatage inline : **gras**, *italique*, `code`
  */
-function formatBold(text: string) {
-  // Remplace **texte** par <strong>texte</strong>
-  return text.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
+function formatInline(text: string) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-stone-900 dark:text-white">$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+    .replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 rounded bg-stone-100 dark:bg-white/10 text-orange-600 dark:text-orange-400 text-xs font-mono">$1</code>');
 }

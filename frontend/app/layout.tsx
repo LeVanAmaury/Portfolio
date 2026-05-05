@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: "Amaury Levan – Portfolio Développeur Python",
   description:
     "Portfolio interactif d'Amaury Levan, apprenti développeur Python chez CCMO Mutuelle (Amiens). " +
-    "Explorez ses projets et compétences via un chatbot IA propulsé par Google Gemini.",
+    "Explorez ses projets et compétences via un chatbot IA.",
   keywords: ["portfolio", "développeur", "Python", "Next.js", "alternance", "CCMO"],
   openGraph: {
     title: "Amaury Levan – Portfolio Développeur Python",
@@ -19,8 +19,27 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={inter.variable}>
-      <body className="bg-[#0a0a0f] text-white antialiased">{children}</body>
+    <html lang="fr" className={inter.variable} suppressHydrationWarning>
+      <head>
+        {/* Script pour appliquer le thème avant le rendu (évite le flash) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('theme');
+                  if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className="bg-stone-50 dark:bg-slate-900 text-stone-900 dark:text-slate-100 antialiased transition-colors duration-300">
+        {children}
+      </body>
     </html>
   );
 }
