@@ -53,7 +53,7 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading }: {
           <div className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed
             ${isUser
               ? "bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-tr-sm shadow-lg shadow-orange-500/20"
-              : "bg-white dark:bg-white/8 text-stone-800 dark:text-slate-100 border border-stone-200 dark:border-white/10 rounded-tl-sm shadow-sm"}`}
+              : "bg-white dark:bg-white/10 text-stone-800 dark:text-slate-100 border border-stone-200 dark:border-white/10 rounded-tl-sm shadow-sm"}`}
           >
             {isUser
               ? content
@@ -241,7 +241,7 @@ export function Chat() {
             <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-violet-500/20 border border-purple-200 dark:border-violet-500/30 flex items-center justify-center shrink-0">
               <Bot size={14} className="text-purple-600 dark:text-violet-400" />
             </div>
-            <div className="rounded-2xl rounded-tl-sm bg-white dark:bg-white/8 border border-stone-200 dark:border-white/10 px-4 py-2.5 flex items-center gap-2 shadow-sm">
+            <div className="rounded-2xl rounded-tl-sm bg-white dark:bg-white/10 border border-stone-200 dark:border-white/10 px-4 py-2.5 flex items-center gap-2 shadow-sm">
               <Loader2 size={14} className="text-purple-500 dark:text-violet-400 animate-spin" />
               <span className="text-stone-500 dark:text-slate-400 text-xs">En train de réfléchir…</span>
             </div>

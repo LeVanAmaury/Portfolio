@@ -53,7 +53,7 @@ export default function HomePage() {
       </div>
 
       {/* ─── Header ─────────────────────────────────────────────────────────── */}
-      <header className="relative z-10 w-full border-b border-stone-200/80 dark:border-white/8 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl flex justify-center">
+      <header className="relative z-10 w-full border-b border-stone-200/80 dark:border-white/10 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl flex justify-center">
         <div className="w-full max-w-5xl px-6 py-4 flex items-center justify-between gap-4">
 
           {/* Identité */}

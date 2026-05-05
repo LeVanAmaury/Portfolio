@@ -20,7 +20,7 @@ import { useState } from "react";
 function SectionHeader({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
   return (
     <div className="flex items-center gap-2 mb-3">
-      <div className="rounded-lg bg-orange-100 dark:bg-white/8 p-1.5 border border-orange-200 dark:border-white/10">
+      <div className="rounded-lg bg-orange-100 dark:bg-white/10 p-1.5 border border-orange-200 dark:border-white/10">
         <Icon size={13} className="text-orange-600 dark:text-orange-400" />
       </div>
       <span className="text-xs font-semibold text-stone-500 dark:text-zinc-400 uppercase tracking-wider">{label}</span>
