@@ -1,16 +1,12 @@
 /**
- * Route API Next.js – Point d'entrée du chatbot IA
+ * Route API Next.js – Point d'entrée du chatbot IA (OpenRouter uniquement)
  */
 
 import { createOpenAI } from "@ai-sdk/openai";
 import { streamText, tool } from "ai";
 import { z } from "zod";
 
-const groq = createOpenAI({
-  baseURL: "https://api.groq.com/openai/v1",
-  apiKey: process.env.GROQ_API_KEY!,
-});
-
+// Configuration OpenRouter
 const openrouter = createOpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_API!,
@@ -35,18 +31,14 @@ COORDONNÉES D'AMAURY :
 DIRECTIVES CRITIQUES :
 1. COMPÉTENCES : Si on te demande ses compétences techniques, ce qu'il sait faire ou ses technos, appelle TOUJOURS 'get_skills'.
 2. PROJETS : Si on te demande ses projets, réalisations ou ce qu'il a construit, appelle TOUJOURS 'get_projects'.
-3. PARCOURS/EXPÉRIENCE : Si on te demande son parcours, son CV, ses études, son alternance, des informations sur sa vie,ses postes passés ou actuels appelle TOUJOURS 'get_resume'.
-4. AUCUN BLA-BLA PRÉLIMINAIRE : Ne génère aucun texte d'introduction si tu vas appeler un outil. Appelle l'outil immédiatement. Ne fais pas de tableau à l'aide de '|', utilise des puces ou des nombres pour faire des listes.
-5. SYNTHÈSE : Une fois les données reçues, fais une réponse structurée, chaleureuse mais CONCISE. Évite les phrases trop longues pour garantir une réponse rapide.
-6. CONTACT : Pour un message de contact, utilise 'submit_contact_form'. Mentionne aussi ses réseaux s'il le demande.`;
-
-// ─── Handler ─────────────────────────────────────────────────────────────────
-export const maxDuration = 30;
+3. PARCOURS/EXPÉRIENCE : Si on te demande son parcours, son CV, ses études, son alternance, appelle TOUJOURS 'get_resume'.
+4. AUCUN BLA-BLA PRÉLIMINAIRE : Ne génère aucun texte d'introduction si tu vas appeler un outil.
+5. SYNTHÈSE : Fais une réponse structurée, chaleureuse et CONCISE.
+6. CONTACT : Pour un message de contact, utilise 'submit_contact_form'.`;
 
 export async function POST(req: Request) {
-  // Vérification des clés API
-  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-    return new Response(JSON.stringify({ error: "Clé API Google manquante" }), { status: 500 });
+  if (!process.env.OPENROUTER_API) {
+    return new Response(JSON.stringify({ error: "Clé API OpenRouter manquante" }), { status: 500 });
   }
 
   try {
@@ -55,7 +47,7 @@ export async function POST(req: Request) {
 
     const fetchWithTimeout = async (url: string, options: RequestInit = {}) => {
       const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), 7000); // Limite stricte à 7s pour Vercel Hobby (total 10s)
+      const id = setTimeout(() => controller.abort(), 7000); 
       try {
         const response = await fetch(url, { ...options, signal: controller.signal });
         clearTimeout(id);
@@ -68,116 +60,77 @@ export async function POST(req: Request) {
 
     const tools = {
       get_projects: tool({
-        description: "Récupère les projets d'Amaury. Filtre par 'stack' si précisé.",
+        description: "Récupère les projets d'Amaury.",
         parameters: z.object({ stack: z.string().optional() }),
         execute: async ({ stack }) => {
-          console.log(`[Tool] get_projects call${stack ? ' (stack: ' + stack + ')' : ''}`);
+          console.log("[Tool] get_projects");
           const url = new URL(`${BACKEND_URL}/api/projects`);
           if (stack) url.searchParams.set("stack", stack);
-
           try {
             const res = await fetchWithTimeout(url.toString());
-            let data = await res.json();
-
-            if (stack && (!data || data.length === 0)) {
-              const fallbackRes = await fetchWithTimeout(`${BACKEND_URL}/api/projects`);
-              data = await fallbackRes.json();
-            }
-            return data;
+            return await res.json();
           } catch (err) {
-            console.error("Error fetching projects:", err);
-            return { error: "Impossible de récupérer les projets (timeout ou serveur injoignable)" };
+            return { error: "Indisponible actuellement" };
           }
         },
       }),
       get_skills: tool({
-        description: "Récupère les compétences techniques d'Amaury.",
+        description: "Récupère les compétences techniques.",
         parameters: z.object({ category: z.string().optional() }),
         execute: async ({ category }) => {
-          console.log(`[Tool] get_skills call${category ? ' (category: ' + category + ')' : ''}`);
+          console.log("[Tool] get_skills");
           const url = new URL(`${BACKEND_URL}/api/skills`);
           if (category) url.searchParams.set("category", category);
           try {
             const res = await fetchWithTimeout(url.toString());
             return await res.json();
           } catch (err) {
-            console.error("Error fetching skills:", err);
-            return { error: "Impossible de récupérer les compétences" };
+            return { error: "Indisponible actuellement" };
           }
         },
       }),
       get_resume: tool({
-        description: "Récupère le profil complet (expériences, formation).",
+        description: "Récupère le CV complet.",
         parameters: z.object({}),
         execute: async () => {
-          console.log("[Tool] get_resume call");
+          console.log("[Tool] get_resume");
           try {
             const res = await fetchWithTimeout(`${BACKEND_URL}/api/resume`);
             return await res.json();
           } catch (err) {
-            console.error("Error fetching resume:", err);
-            return { error: "Impossible de récupérer le CV" };
+            return { error: "Indisponible actuellement" };
           }
         },
       }),
       submit_contact_form: tool({
         description: "Envoie un message de contact.",
-        parameters: z.object({
-          name: z.string(),
-          email: z.string().email(),
-          message: z.string(),
-        }),
+        parameters: z.object({ name: z.string(), email: z.string().email(), message: z.string() }),
         execute: async (params) => {
-          console.log("[Tool] submit_contact_form call");
+          console.log("[Tool] submit_contact_form");
           const url = new URL(`${BACKEND_URL}/api/contact`);
           Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
           try {
             const res = await fetchWithTimeout(url.toString(), { method: "POST" });
             return await res.json();
           } catch (err) {
-            console.error("Error submitting contact form:", err);
-            return { error: "Échec de l'envoi du message" };
+            return { error: "Échec de l'envoi" };
           }
         },
       }),
     };
 
-    // Stratégie : Essayer Groq d'abord (ultra rapide), fallback sur OpenRouter si erreur
-    const tryStream = async (provider: 'groq' | 'openrouter') => {
-      const model = provider === 'groq'
-        ? groq("llama-3.3-70b-versatile")
-        : openrouter("openrouter/free");
+    const result = await streamText({
+      model: openrouter("google/gemini-2.0-flash-lite-preview-02-05:free"), // Modèle gratuit, rapide et efficace
+      system: SYSTEM_PROMPT,
+      messages,
+      tools,
+      maxSteps: 5,
+    });
 
-      return streamText({
-        model: model as any,
-        system: SYSTEM_PROMPT + (provider === 'groq' ? "\nIMPORTANT : Utilise un outil pour les projets/compétences/CV." : ""),
-        messages,
-        tools,
-        maxSteps: 5,
-      });
-    };
-
-    try {
-      console.log(">>> Tentative Groq...");
-      const result = await tryStream('groq');
-      return result.toDataStreamResponse();
-    } catch (groqError: any) {
-      console.warn(">>> Groq en échec, bascule sur OpenRouter...", groqError.message);
-      try {
-        if (!process.env.OPENROUTER_API) throw new Error("No OpenRouter Key");
-        const result = await tryStream('openrouter');
-        return result.toDataStreamResponse();
-      } catch (e: any) {
-        console.error("!!! ÉCHEC GÉNÉRAL :", e.message);
-        throw e;
-      }
-    }
+    return result.toDataStreamResponse();
 
   } catch (error: any) {
-    console.error("!!! ERREUR CRITIQUE ROUTE CHAT :", error);
-    return new Response(JSON.stringify({ error: "Une erreur interne est survenue" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.error("!!! ERREUR CRITIQUE :", error);
+    return new Response(JSON.stringify({ error: "Erreur serveur" }), { status: 500 });
   }
 }
