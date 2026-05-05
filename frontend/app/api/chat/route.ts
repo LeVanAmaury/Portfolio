@@ -18,7 +18,7 @@ const openrouter = createOpenAI({
   }
 });
 
-const BACKEND_URL = process.env.BACKEND_API_URL || "http://localhost:8000";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.BACKEND_API_URL || "http://localhost:8000";
 
 const SYSTEM_PROMPT = `Tu es l'assistant virtuel d'Amaury Le Van, un apprenti développeur Python passionné et déterminé. Tu es chaleureux, enthousiaste et concis.
 
@@ -147,19 +147,23 @@ export async function POST(req: Request) {
 
     // Essayer le modèle principal, puis le fallback
     for (const modelId of [MODELS.primary, MODELS.fallback]) {
-      try {
-        console.log(`>>> Tentative ${modelId}...`);
-        const result = await streamText({
-          model: openrouter(modelId) as any,
-          system: SYSTEM_PROMPT,
-          messages: recentMessages,
-          tools,
-          maxSteps: 5,
-        });
-        return result.toDataStreamResponse();
-      } catch (e: any) {
-        console.warn(`>>> Échec ${modelId}:`, e.message);
-        continue;
+      // 3 tentatives par modèle pour contrer l'instabilité des API gratuites
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          console.log(`>>> Tentative ${attempt}/3 avec ${modelId}...`);
+          const result = await streamText({
+            model: openrouter(modelId) as any,
+            system: SYSTEM_PROMPT,
+            messages: recentMessages,
+            tools,
+            maxSteps: 5,
+          });
+          return result.toDataStreamResponse();
+        } catch (e: any) {
+          console.warn(`>>> Échec ${modelId} (tentative ${attempt}):`, e.message);
+          // Attendre 1s avant de réessayer
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
       }
     }
 
