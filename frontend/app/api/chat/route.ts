@@ -40,14 +40,15 @@ RÈGLES DE PRÉSENTATION DU PARCOURS (Quand on demande de parler d'Amaury) :
 - Ajoute une citation ou une réflexion qui le résume et le représente.
 
 RÈGLES GÉNÉRALES :
-1. COMPÉTENCES → appelle 'get_skills' immédiatement.
+1. COMPÉTENCES → appelle 'get_skills' immédiatement (sans aucun paramètre pour tout récupérer d'un coup).
 2. PROJETS → appelle 'get_projects' immédiatement.
 3. PARCOURS/CV/ALTERNANCE → appelle 'get_resume' immédiatement (utilise les filtres pour affiner).
 4. N'écris AUCUN texte d'intro avant d'appeler un outil.
 5. Après réception des données, fais une réponse structurée, aérée et chaleureuse.
 6. CONTACT → utilise 'submit_contact_form'.
 7. Pour les questions simples, réponds directement sans outil.
-8. N'utilise PAS d'émojis (ou très exceptionnellement) dans le texte généré.`;
+8. N'utilise PAS d'émojis (ou très exceptionnellement) dans le texte généré.
+9. Ne fais JAMAIS de tableaux Markdown (utilise uniquement du texte ou des listes à puces).`;
 
 // ─── Modèles gratuits OpenRouter ────────────────────────────────────────────
 const MODELS = {
@@ -93,14 +94,12 @@ const tools = {
   }),
 
   get_skills: tool({
-    description: "Récupère les compétences techniques d'Amaury.",
-    parameters: z.object({ category: z.string().optional() }),
-    execute: async ({ category }) => {
-      console.log("[Tool] get_skills", category ? `(${category})` : "");
-      const url = new URL(`${BACKEND_URL}/api/skills`);
-      if (category) url.searchParams.set("category", category);
+    description: "Récupère TOUTES les compétences techniques d'Amaury d'un seul coup.",
+    parameters: z.object({}),
+    execute: async () => {
+      console.log("[Tool] get_skills");
       try {
-        const res = await fetchWithTimeout(url.toString());
+        const res = await fetchWithTimeout(`${BACKEND_URL}/api/skills`);
         return await res.json();
       } catch {
         return { error: "Les compétences sont temporairement indisponibles." };
