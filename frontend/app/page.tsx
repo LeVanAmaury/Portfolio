@@ -30,6 +30,13 @@ function ThemeToggle() {
 }
 
 export default function HomePage() {
+  // Réveil du backend Render (gratuit) dès l'ouverture de la page
+  useEffect(() => {
+    // URL publique ou fallback
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "https://portfolio-backend-s2w9.onrender.com";
+    fetch(`${backendUrl}/health`).catch(() => {});
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
 
