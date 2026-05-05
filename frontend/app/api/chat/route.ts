@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 
     const fetchWithTimeout = async (url: string, options: RequestInit = {}) => {
       const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), 10000);
+      const id = setTimeout(() => controller.abort(), 15000); // Augmenté à 15s pour les cold starts
       try {
         const response = await fetch(url, { ...options, signal: controller.signal });
         clearTimeout(id);
@@ -71,6 +71,7 @@ export async function POST(req: Request) {
         description: "Récupère les projets d'Amaury. Filtre par 'stack' si précisé.",
         parameters: z.object({ stack: z.string().optional() }),
         execute: async ({ stack }) => {
+          console.log(`[Tool] get_projects call${stack ? ' (stack: ' + stack + ')' : ''}`);
           const url = new URL(`${BACKEND_URL}/api/projects`);
           if (stack) url.searchParams.set("stack", stack);
 
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
             return data;
           } catch (err) {
             console.error("Error fetching projects:", err);
-            return { error: "Impossible de récupérer les projets" };
+            return { error: "Impossible de récupérer les projets (timeout ou serveur injoignable)" };
           }
         },
       }),
@@ -93,6 +94,7 @@ export async function POST(req: Request) {
         description: "Récupère les compétences techniques d'Amaury.",
         parameters: z.object({ category: z.string().optional() }),
         execute: async ({ category }) => {
+          console.log(`[Tool] get_skills call${category ? ' (category: ' + category + ')' : ''}`);
           const url = new URL(`${BACKEND_URL}/api/skills`);
           if (category) url.searchParams.set("category", category);
           try {
@@ -108,6 +110,7 @@ export async function POST(req: Request) {
         description: "Récupère le profil complet (expériences, formation).",
         parameters: z.object({}),
         execute: async () => {
+          console.log("[Tool] get_resume call");
           try {
             const res = await fetchWithTimeout(`${BACKEND_URL}/api/resume`);
             return await res.json();
@@ -125,6 +128,7 @@ export async function POST(req: Request) {
           message: z.string(),
         }),
         execute: async (params) => {
+          console.log("[Tool] submit_contact_form call");
           const url = new URL(`${BACKEND_URL}/api/contact`);
           Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
           try {
@@ -138,11 +142,11 @@ export async function POST(req: Request) {
       }),
     };
 
-    // Stratégie : Essayer Groq d'abord, fallback sur OpenRouter si erreur (quota, etc.)
+    // Stratégie : Essayer Groq d'abord (ultra rapide), fallback sur OpenRouter si erreur
     const tryStream = async (provider: 'groq' | 'openrouter') => {
       const model = provider === 'groq'
         ? groq("llama-3.3-70b-versatile")
-        : openrouter("openrouter/free"); // Sélectionne automatiquement la meilleure IA gratuite disponible
+        : openrouter("openrouter/free");
 
       return streamText({
         model: model as any,
@@ -154,18 +158,18 @@ export async function POST(req: Request) {
     };
 
     try {
-      if (!process.env.OPENROUTER_API) throw new Error("No OpenRouter Key");
-      console.log(">>> Tentative OpenRouter...");
-      const result = await tryStream('openrouter');
+      console.log(">>> Tentative Groq...");
+      const result = await tryStream('groq');
       return result.toDataStreamResponse();
-    } catch (e: any) {
-      console.warn(">>> OpenRouter en échec, bascule sur Groq...", e.message);
+    } catch (groqError: any) {
+      console.warn(">>> Groq en échec, bascule sur OpenRouter...", groqError.message);
       try {
-        const result = await tryStream('groq');
+        if (!process.env.OPENROUTER_API) throw new Error("No OpenRouter Key");
+        const result = await tryStream('openrouter');
         return result.toDataStreamResponse();
-      } catch (groqError: any) {
-        console.error("!!! ÉCHEC FALLBACK GÉNÉRAL :", groqError.message);
-        throw groqError;
+      } catch (e: any) {
+        console.error("!!! ÉCHEC GÉNÉRAL :", e.message);
+        throw e;
       }
     }
 
