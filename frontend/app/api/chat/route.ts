@@ -38,10 +38,10 @@ RÈGLES :
 6. CONTACT → utilise 'submit_contact_form'.
 7. Pour les questions simples (bonjour, calculs, etc.), réponds directement sans outil.`;
 
-// ─── Modèles gratuits OpenRouter ────────────────────────────────────────────
+// ─── Modèles gratuits OpenRouter (testés avec tool calling) ─────────────────
 const MODELS = {
-  primary: "meta-llama/llama-4-maverick:free",
-  fallback: "google/gemini-2.5-flash-preview:free",
+  primary: "meta-llama/llama-3.3-70b-instruct:free",
+  fallback: "qwen/qwen3-235b-a22b:free",
 };
 
 // ─── Fetch avec timeout ─────────────────────────────────────────────────────
