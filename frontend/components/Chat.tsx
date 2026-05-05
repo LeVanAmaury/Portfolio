@@ -30,13 +30,24 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading, mess
 
   const handleFeedback = async (isPositive: boolean) => {
     setFeedback(isPositive ? "positive" : "negative");
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    
+    if (!backendUrl) return;
+
+    // Avoid hitting localhost from production
+    const isLocalhost = backendUrl.includes("localhost");
+    const isProduction = typeof window !== "undefined" && !window.location.hostname.includes("localhost");
+    if (isLocalhost && isProduction) return;
+
     try {
       await fetch(`${backendUrl}/api/feedback?message_id=${messageId}&is_positive=${isPositive}`, {
         method: "POST",
       });
     } catch (e) {
-      console.error("Erreur feedback:", e);
+      // Log only in development or if it's not a fetch error
+      if (!isProduction) {
+        console.error("Erreur feedback:", e);
+      }
     }
   };
   
@@ -279,8 +290,21 @@ export function Chat() {
           onSubmit={(e) => {
             e.preventDefault();
             if (input.trim()) {
-              const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-              fetch(`${backendUrl}/api/analytics/question?question=${encodeURIComponent(input)}`, { method: "POST" }).catch(e => console.error("Analytics error:", e));
+              const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+              
+              // Only attempt analytics if backend URL is configured and not pointing to localhost in production
+              const isLocalhost = backendUrl?.includes("localhost") || !backendUrl;
+              const isProduction = typeof window !== "undefined" && !window.location.hostname.includes("localhost");
+              
+              if (backendUrl && !(isLocalhost && isProduction)) {
+                fetch(`${backendUrl}/api/analytics/question?question=${encodeURIComponent(input)}`, { 
+                  method: "POST",
+                  mode: 'no-cors' // Use no-cors to avoid some preflight issues if analytics is simple
+                }).catch(() => {
+                  // Silent fail for analytics to not pollute console
+                });
+              }
+              
               handleSubmit(e);
             }
           }}

@@ -60,6 +60,10 @@ export function ProjectsGrid({ projects }: { projects: Project[] }) {
 
 export function SkillsGrid({ skills }: { skills: Skill[] }) {
   // Grouper par catégorie
+  if (!Array.isArray(skills)) {
+    return <p className="text-sm text-zinc-500 italic">Données de compétences invalides.</p>;
+  }
+
   const grouped = skills.reduce<Record<string, Skill[]>>((acc, s) => {
     acc[s.category] = [...(acc[s.category] ?? []), s];
     return acc;
@@ -128,7 +132,7 @@ export function ResumeDisplay({ resume }: { resume: ResumeResponse }) {
       </div>
 
       {/* Expériences */}
-      {resume.experiences.length > 0 && (
+      {resume?.experiences && Array.isArray(resume.experiences) && resume.experiences.length > 0 && (
         <div>
           <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">Expériences</p>
           <div className="space-y-3">
