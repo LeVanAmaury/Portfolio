@@ -177,10 +177,25 @@ export function Chat() {
   };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  // Auto-scroll logic
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    // Check if user is near bottom (within 100px)
+    const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 150;
+
+    if (isAtBottom || isLoading) {
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ 
+          behavior: isLoading ? "auto" : "smooth",
+          block: "end"
+        });
+      });
+    }
+  }, [messages, isLoading]);
 
   const handleSuggestion = (text: string) => {
     setInput(text);
@@ -192,7 +207,10 @@ export function Chat() {
     <div className="flex flex-col h-full">
 
       {/* Zone des messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
+      <div 
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto px-4 py-6 space-y-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10"
+      >
         <AnimatePresence>
           {isEmpty ? (
             <motion.div
