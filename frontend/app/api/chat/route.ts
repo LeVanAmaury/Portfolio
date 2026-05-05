@@ -38,10 +38,12 @@ RÈGLES :
 6. CONTACT → utilise 'submit_contact_form'.
 7. Pour les questions simples (bonjour, calculs, etc.), réponds directement sans outil.`;
 
-// ─── Modèles gratuits OpenRouter (testés avec tool calling) ─────────────────
+// ─── Modèles gratuits OpenRouter ────────────────────────────────────────────
 const MODELS = {
-  primary: "meta-llama/llama-3.3-70b-instruct:free",
-  fallback: "qwen/qwen3-235b-a22b:free",
+  // openrouter/free route automatiquement vers le meilleur modèle gratuit disponible
+  primary: "openrouter/free",
+  // Fallback fiable au cas où le routeur gratuit ne trouve rien
+  fallback: "google/gemini-2.0-flash-lite-preview-02-05:free",
 };
 
 // ─── Fetch avec timeout ─────────────────────────────────────────────────────
@@ -138,7 +140,7 @@ export async function POST(req: Request) {
 
   try {
     const { messages } = await req.json();
-    
+
     // Limiter à 12 messages max pour éviter les timeouts
     const recentMessages = messages.slice(-12);
     console.log(`>>> ${recentMessages.length}/${messages.length} messages envoyés`);
