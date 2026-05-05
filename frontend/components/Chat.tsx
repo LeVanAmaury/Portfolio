@@ -266,8 +266,8 @@ export function Chat() {
 
       {/* Suggestions rapides & Reset (après premier message) */}
       {!isEmpty && (
-        <div className="px-4 pb-2 flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
-          <div className="flex gap-2">
+        <div className="px-4 pb-2 flex items-center justify-between gap-2">
+          <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1 flex-1 mask-linear-right pr-4">
             {SUGGESTIONS.map((s) => (
               <button
                 key={s.text}
@@ -284,7 +284,7 @@ export function Chat() {
           <button
             onClick={clearChat}
             title="Effacer la conversation"
-            className="p-1.5 rounded-lg text-stone-400 dark:text-zinc-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-200"
+            className="shrink-0 p-1.5 rounded-lg text-stone-400 dark:text-zinc-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-200"
           >
             <Trash2 size={14} />
           </button>

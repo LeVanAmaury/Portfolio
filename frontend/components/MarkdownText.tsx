@@ -65,5 +65,6 @@ function formatInline(text: string) {
   return text
     .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-stone-900 dark:text-white">$1</strong>')
     .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-    .replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 rounded bg-stone-100 dark:bg-white/10 text-orange-600 dark:text-orange-400 text-xs font-mono">$1</code>');
+    .replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 rounded bg-stone-100 dark:bg-white/10 text-orange-600 dark:text-orange-400 text-xs font-mono">$1</code>')
+    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-orange-600 dark:text-orange-400 hover:underline font-medium">$1</a>');
 }
