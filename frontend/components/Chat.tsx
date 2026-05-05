@@ -49,19 +49,13 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading }: {
       {/* Contenu */}
       <div className={`flex flex-col gap-3 max-w-[85%] ${isUser ? "items-end" : "items-start"}`}>
         {/* Texte */}
-        {(content || (toolInvocations && toolInvocations.length > 0)) ? (
+        {content ? (
           <div className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed
             ${isUser
               ? "bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-tr-sm shadow-lg shadow-orange-500/20"
               : "bg-white dark:bg-white/10 text-stone-800 dark:text-slate-100 border border-stone-200 dark:border-white/10 rounded-tl-sm shadow-sm"}`}
           >
-            {isUser
-              ? content
-              : (content
-                ? <MarkdownText content={content} />
-                : <span className="text-stone-400 dark:text-zinc-500 italic">Analyse en cours...</span>
-              )
-            }
+            {isUser ? content : <MarkdownText content={content} />}
           </div>
         ) : null}
 

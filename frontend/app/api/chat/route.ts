@@ -55,8 +55,11 @@ const MODELS = {
   fallback: "google/gemini-2.0-flash-lite-preview-02-05:free",
 };
 
+// Timeout de 60s pour la fonction Vercel (pour laisser le temps à Render de se réveiller)
+export const maxDuration = 60;
+
 // ─── Fetch avec timeout ─────────────────────────────────────────────────────
-async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 7000) {
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 55000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
