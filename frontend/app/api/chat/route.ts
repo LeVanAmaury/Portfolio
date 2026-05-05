@@ -49,10 +49,10 @@ RÈGLES GÉNÉRALES :
 
 // ─── Modèles gratuits OpenRouter ────────────────────────────────────────────
 const MODELS = {
-  // openrouter/free route automatiquement vers le meilleur modèle gratuit disponible
-  primary: "openrouter/free",
-  // Fallback fiable au cas où le routeur gratuit ne trouve rien
-  fallback: "google/gemini-2.0-flash-lite-preview-02-05:free",
+  // Modèle principal très performant et stable pour le tool calling
+  primary: "meta-llama/llama-3.3-70b-instruct:free",
+  // Fallback
+  fallback: "google/gemini-2.0-flash-exp:free",
 };
 
 // Timeout de 60s pour la fonction Vercel (pour laisser le temps à Render de se réveiller)
