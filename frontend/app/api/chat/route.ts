@@ -37,7 +37,7 @@ DIRECTIVES CRITIQUES :
 2. PROJETS : Si on te demande ses projets, réalisations ou ce qu'il a construit, appelle TOUJOURS 'get_projects'.
 3. PARCOURS/EXPÉRIENCE : Si on te demande son parcours, son CV, ses études, son alternance, des informations sur sa vie,ses postes passés ou actuels appelle TOUJOURS 'get_resume'.
 4. AUCUN BLA-BLA PRÉLIMINAIRE : Ne génère aucun texte d'introduction si tu vas appeler un outil. Appelle l'outil immédiatement. Ne fais pas de tableau à l'aide de '|', utilise des puces ou des nombres pour faire des listes.
-5. SYNTHÈSE : Une fois les données reçues, fais une réponse structurée et chaleureuse.
+5. SYNTHÈSE : Une fois les données reçues, fais une réponse structurée, chaleureuse mais CONCISE. Évite les phrases trop longues pour garantir une réponse rapide.
 6. CONTACT : Pour un message de contact, utilise 'submit_contact_form'. Mentionne aussi ses réseaux s'il le demande.`;
 
 // ─── Handler ─────────────────────────────────────────────────────────────────
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 
     const fetchWithTimeout = async (url: string, options: RequestInit = {}) => {
       const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), 15000); // Augmenté à 15s pour les cold starts
+      const id = setTimeout(() => controller.abort(), 7000); // Limite stricte à 7s pour Vercel Hobby (total 10s)
       try {
         const response = await fetch(url, { ...options, signal: controller.signal });
         clearTimeout(id);

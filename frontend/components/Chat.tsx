@@ -145,6 +145,10 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading, mess
 export function Chat() {
   const { messages, input, handleInputChange, handleSubmit, isLoading, setInput, setMessages } = useChat({
     api: "/api/chat",
+    // Envoyer seulement les 10 derniers messages pour éviter de saturer le timeout de Vercel (10s Hobby)
+    experimental_prepareRequestBody: ({ messages }) => {
+      return { messages: messages.slice(-10) };
+    },
   });
 
   const [isInitialLoad, setIsInitialLoad] = useState(true);
