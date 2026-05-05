@@ -10,6 +10,7 @@ import { LayoutGrid, Cpu, User, Mail, CheckCircle2, Github, Linkedin, Download, 
 import { ProjectCard } from "@/components/ui/ProjectCard";
 import { ProjectModal } from "@/components/ui/ProjectModal";
 import { ExperienceModal } from "@/components/ui/ExperienceModal";
+import { ProfileModal } from "@/components/ui/ProfileModal";
 import { SkillBadge } from "@/components/ui/SkillBadge";
 import { ExperienceCard } from "@/components/ui/ExperienceCard";
 import type { Project, Skill, ResumeResponse, Experience } from "@/lib/types";
@@ -85,6 +86,7 @@ export function SkillsGrid({ skills }: { skills: Skill[] }) {
 
 export function ResumeDisplay({ resume }: { resume: ResumeResponse }) {
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   if (!resume || typeof resume !== 'object') {
     return <p className="text-sm text-stone-400 dark:text-zinc-500 italic">Données du CV indisponibles.</p>;
@@ -93,11 +95,14 @@ export function ResumeDisplay({ resume }: { resume: ResumeResponse }) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full space-y-4">
       {/* Profil */}
-      <div className="rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-white/5 p-5 shadow-sm">
+      <button
+        onClick={() => setProfileModalOpen(true)}
+        className="w-full text-left rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-white/5 p-5 shadow-sm hover:border-orange-300 dark:hover:border-orange-500/50 hover:shadow-md transition-all group"
+      >
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <SectionHeader icon={User} label="Profil" />
-            <h3 className="font-bold text-stone-900 dark:text-white text-base">{resume.name}</h3>
+            <h3 className="font-bold text-stone-900 dark:text-white text-base group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">{resume.name}</h3>
             <p className="text-orange-600 dark:text-orange-300 text-sm mt-0.5">{resume.title}</p>
           </div>
           {resume.resume_url && (
@@ -105,6 +110,7 @@ export function ResumeDisplay({ resume }: { resume: ResumeResponse }) {
               href={resume.resume_url}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-100 dark:bg-orange-500/20 border border-orange-200 dark:border-orange-500/30 text-[10px] text-orange-700 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-500/30 transition-all"
             >
               <Download size={12} />
@@ -116,17 +122,22 @@ export function ResumeDisplay({ resume }: { resume: ResumeResponse }) {
         <div className="flex flex-wrap gap-3 mt-3 text-xs text-stone-500 dark:text-zinc-500">
           {resume.location && <span>📍 {resume.location}</span>}
           {resume.github && (
-            <a href={resume.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-stone-900 dark:hover:text-white transition-colors">
+            <a href={resume.github} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex items-center gap-1 hover:text-stone-900 dark:hover:text-white transition-colors">
               <Github size={12} /> GitHub
             </a>
           )}
           {resume.linkedin && (
-            <a href={resume.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-stone-900 dark:hover:text-white transition-colors">
+            <a href={resume.linkedin} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="flex items-center gap-1 hover:text-stone-900 dark:hover:text-white transition-colors">
               <Linkedin size={12} /> LinkedIn
             </a>
           )}
         </div>
-      </div>
+        <div className="mt-4 pt-3 border-t border-stone-100 dark:border-white/5 flex justify-end">
+          <span className="text-[10px] text-orange-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+            Voir la présentation complète &rarr;
+          </span>
+        </div>
+      </button>
 
       {/* Expériences */}
       {resume?.experiences && Array.isArray(resume.experiences) && resume.experiences.length > 0 && (
@@ -148,6 +159,12 @@ export function ResumeDisplay({ resume }: { resume: ResumeResponse }) {
       <ExperienceModal
         experience={selectedExperience}
         onClose={() => setSelectedExperience(null)}
+      />
+
+      <ProfileModal
+        isOpen={profileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+        resume={resume}
       />
     </motion.div>
   );

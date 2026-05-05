@@ -30,6 +30,7 @@ COORDONNÉES :
 - Localisation : Amiens / Beauvais
 
 RÈGLES DE PRÉSENTATION DU PARCOURS (Quand on demande de parler d'Amaury) :
+- Appelle 'get_resume' avec include_experiences=false.
 - Raconte une histoire (narratif) de ses expériences les plus réussies.
 - Mets en avant sa spécialité, son domaine de prédilection et le métier envisagé.
 - Ajoute une réflexion sur son parcours : compétences acquises, difficultés surmontées (adaptation, autonomie, innovation, relationnel).
@@ -41,11 +42,12 @@ RÈGLES DE PRÉSENTATION DU PARCOURS (Quand on demande de parler d'Amaury) :
 RÈGLES GÉNÉRALES :
 1. COMPÉTENCES → appelle 'get_skills' immédiatement.
 2. PROJETS → appelle 'get_projects' immédiatement.
-3. PARCOURS/CV/ALTERNANCE → appelle 'get_resume' immédiatement (utilise le filtre si on demande un poste précis).
+3. PARCOURS/CV/ALTERNANCE → appelle 'get_resume' immédiatement (utilise les filtres pour affiner).
 4. N'écris AUCUN texte d'intro avant d'appeler un outil.
 5. Après réception des données, fais une réponse structurée, aérée et chaleureuse.
 6. CONTACT → utilise 'submit_contact_form'.
-7. Pour les questions simples, réponds directement sans outil.`;
+7. Pour les questions simples, réponds directement sans outil.
+8. N'utilise PAS d'émojis (ou très exceptionnellement) dans le texte généré.`;
 
 // ─── Modèles gratuits OpenRouter ────────────────────────────────────────────
 const MODELS = {
@@ -108,18 +110,23 @@ const tools = {
 
   get_resume: tool({
     description: "Récupère le profil d'Amaury. Peut filtrer par entreprise ou poste.",
-    parameters: z.object({ filter: z.string().optional().describe("Filtrer par entreprise ou poste (ex: 'CCMO', 'Alternance'). Optionnel.") }),
-    execute: async ({ filter }) => {
-      console.log("[Tool] get_resume", filter ? `(${filter})` : "");
+    parameters: z.object({
+      filter: z.string().optional().describe("Filtrer par entreprise ou poste (ex: 'CCMO', 'Alternance'). Optionnel."),
+      include_experiences: z.boolean().default(true).describe("Mettre à false si l'utilisateur demande juste une 'présentation' d'Amaury sans le détail de ses expériences.")
+    }),
+    execute: async ({ filter, include_experiences }) => {
+      console.log("[Tool] get_resume", filter ? `(${filter})` : "", include_experiences ? "" : "(no exp)");
       try {
         const res = await fetchWithTimeout(`${BACKEND_URL}/api/resume`);
         const data = await res.json();
-        
-        if (filter && data.experiences) {
-            const f = filter.toLowerCase();
-            data.experiences = data.experiences.filter((exp: any) => 
-                exp.company.toLowerCase().includes(f) || exp.title.toLowerCase().includes(f) || exp.description.toLowerCase().includes(f)
-            );
+
+        if (!include_experiences) {
+          data.experiences = [];
+        } else if (filter && data.experiences) {
+          const f = filter.toLowerCase();
+          data.experiences = data.experiences.filter((exp: any) =>
+            exp.company.toLowerCase().includes(f) || exp.title.toLowerCase().includes(f) || exp.description.toLowerCase().includes(f)
+          );
         }
         return data;
       } catch {
