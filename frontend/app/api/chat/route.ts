@@ -183,60 +183,57 @@ export async function POST(req: Request) {
 
     // Essayer les modèles dans l'ordre (Groq → Llama OpenRouter → openrouter/free)
     for (const modelConfig of MODELS) {
-      // 1 seule tentative par modèle pour basculer vite en cas d'échec
-      for (let attempt = 1; attempt <= 1; attempt++) {
-        try {
-          console.log(`>>> Essai avec ${modelConfig.id}...`);
+      try {
+        console.log(`>>> Essai avec ${modelConfig.id}...`);
 
-          const result = await streamText({
-            model: modelConfig.provider(modelConfig.id) as any,
-            system: SYSTEM_PROMPT,
-            messages: recentMessages,
-            tools,
-            maxSteps: 5,
-            maxTokens: 1024,
-          });
+        const result = await streamText({
+          model: modelConfig.provider(modelConfig.id) as any,
+          system: SYSTEM_PROMPT,
+          messages: recentMessages,
+          tools,
+          maxSteps: 3,
+          maxTokens: 1024,
+          temperature: 0.7,
+        });
 
-          // Créer la réponse streaming
-          const response = result.toDataStreamResponse();
-          const body = response.body;
-          if (!body) throw new Error("Pas de body dans la réponse");
+        // Créer la réponse streaming
+        const response = result.toDataStreamResponse();
+        const body = response.body;
+        if (!body) throw new Error("Pas de body dans la réponse");
 
-          // CRITICAL: Lire le premier chunk pour vérifier que le stream fonctionne.
-          // Si Groq a renvoyé une erreur, ça plantera ICI (dans le try/catch)
-          // au lieu de planter APRÈS le return (ce qui crashe Vercel).
-          const reader = body.getReader();
-          const firstRead = await reader.read();
+        // CRITICAL: Lire le premier chunk pour vérifier que le stream fonctionne.
+        // Si Groq a renvoyé une erreur, ça plantera ICI (dans le try/catch)
+        // au lieu de planter APRÈS le return (ce qui crashe Vercel).
+        const reader = body.getReader();
+        const firstRead = await reader.read();
 
-          if (firstRead.done && !firstRead.value) {
-            throw new Error("Stream vide");
-          }
-
-          // Le stream fonctionne ! Construire un nouveau stream qui commence
-          // par le chunk déjà lu, puis continue avec le reste.
-          const validatedStream = new ReadableStream({
-            start(controller) {
-              if (firstRead.value) controller.enqueue(firstRead.value);
-              if (firstRead.done) controller.close();
-            },
-            async pull(controller) {
-              try {
-                const { value, done } = await reader.read();
-                if (done) controller.close();
-                else controller.enqueue(value);
-              } catch { controller.close(); }
-            },
-            cancel() { reader.cancel(); }
-          });
-
-          return new Response(validatedStream, {
-            headers: response.headers,
-            status: response.status,
-          });
-        } catch (e: any) {
-          console.warn(`>>> Échec ${modelConfig.id} (tentative ${attempt}):`, e.message);
-          await new Promise((resolve) => setTimeout(resolve, 500));
+        if (firstRead.done && !firstRead.value) {
+          throw new Error("Stream vide");
         }
+
+        // Le stream fonctionne ! Construire un nouveau stream qui commence
+        // par le chunk déjà lu, puis continue avec le reste.
+        const validatedStream = new ReadableStream({
+          start(controller) {
+            if (firstRead.value) controller.enqueue(firstRead.value);
+            if (firstRead.done) controller.close();
+          },
+          async pull(controller) {
+            try {
+              const { value, done } = await reader.read();
+              if (done) controller.close();
+              else controller.enqueue(value);
+            } catch { controller.close(); }
+          },
+          cancel() { reader.cancel(); }
+        });
+
+        return new Response(validatedStream, {
+          headers: response.headers,
+          status: response.status,
+        });
+      } catch (e: any) {
+        console.warn(`>>> Échec ${modelConfig.id}:`, e.message);
       }
     }
 
