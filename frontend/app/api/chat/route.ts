@@ -6,13 +6,9 @@
  */
 
 import { createOpenAI } from "@ai-sdk/openai";
+import { groq } from "@ai-sdk/groq";
 import { streamText, tool } from "ai";
 import { z } from "zod";
-
-const groq = createOpenAI({
-  baseURL: "https://api.groq.com/openai/v1",
-  apiKey: process.env.GROQ_API_KEY!,
-});
 
 const openrouter = createOpenAI({
   baseURL: "https://openrouter.ai/api/v1",
