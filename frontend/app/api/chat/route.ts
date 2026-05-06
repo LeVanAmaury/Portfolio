@@ -52,11 +52,9 @@ RÈGLES GÉNÉRALES :
 
 // ─── Modèles gratuits OpenRouter ────────────────────────────────────────────
 const MODELS = {
-  // On abandonne openrouter/free car il route parfois vers des modèles qui ne savent pas 
-  // utiliser les outils (et qui affichent des balises "TOOLCALL>" à l'écran).
-  // Gemini 2.0 Flash Lite est 100% gratuit, extrêmement rapide et gère parfaitement les outils.
-  primary: "google/gemini-2.0-flash-lite-preview-02-05:free",
-  // Fallback fiable
+  // openrouter/free route automatiquement vers le meilleur modèle gratuit disponibl
+  primary: "openrouter/free",
+  // Fallback fiable au cas où le routeur gratuit ne trouve rien
   fallback: "meta-llama/llama-3.3-70b-instruct:free",
 };
 
@@ -70,8 +68,8 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
   try {
     // On cache agressivement les requêtes (1 heure) pour que Vercel réponde instantanément 
     // sans avoir à attendre le backend Render !
-    const res = await fetch(url, { 
-      ...options, 
+    const res = await fetch(url, {
+      ...options,
       signal: controller.signal,
       next: { revalidate: 3600 }
     });
@@ -109,12 +107,12 @@ const tools = {
       try {
         const res = await fetchWithTimeout(`${BACKEND_URL}/api/skills`);
         const data = await res.json();
-        
+
         if (category && Array.isArray(data)) {
-            const catLower = category.toLowerCase();
-            const filtered = data.filter((s: any) => s.category?.toLowerCase().includes(catLower));
-            // Si le filtre ne trouve rien (ex: AI donne un nom bizarre), on renvoie tout
-            return filtered.length > 0 ? filtered : data;
+          const catLower = category.toLowerCase();
+          const filtered = data.filter((s: any) => s.category?.toLowerCase().includes(catLower));
+          // Si le filtre ne trouve rien (ex: AI donne un nom bizarre), on renvoie tout
+          return filtered.length > 0 ? filtered : data;
         }
         return data;
       } catch {
