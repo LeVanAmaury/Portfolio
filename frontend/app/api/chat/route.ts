@@ -183,7 +183,7 @@ export async function POST(req: Request) {
         try {
           console.log(`>>> Tentative ${attempt}/2 avec ${modelConfig.id}...`);
 
-          const result = streamText({
+          const result = await streamText({
             model: modelConfig.provider(modelConfig.id) as any,
             system: SYSTEM_PROMPT,
             messages: recentMessages,
