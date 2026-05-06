@@ -267,13 +267,13 @@ export function Chat() {
 
       {/* Suggestions rapides & Reset (après premier message) */}
       {!isEmpty && (
-        <div className="px-4 pb-2 flex items-center justify-between gap-2">
-          <div className="flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-1 flex-1 mask-linear-right pr-4">
+        <div className="px-4 pb-2 flex items-end justify-between gap-2">
+          <div className="flex flex-wrap gap-1.5 pb-1 flex-1">
             {SUGGESTIONS.map((s) => (
               <button
                 key={s.text}
                 onClick={() => setInput(s.text)}
-                className="shrink-0 rounded-full border border-stone-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-1 text-[11px]
+                className="rounded-full border border-stone-200 dark:border-white/10 bg-white dark:bg-white/5 px-2.5 py-1 text-[10px]
                            text-stone-500 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-white/10 hover:text-orange-600 dark:hover:text-orange-300
                            transition-all duration-200"
               >
