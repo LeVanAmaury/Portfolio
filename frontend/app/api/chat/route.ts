@@ -52,9 +52,11 @@ RÈGLES GÉNÉRALES :
 
 // ─── Modèles gratuits OpenRouter ────────────────────────────────────────────
 const MODELS = {
-  // openrouter/free route automatiquement vers le meilleur modèle gratuit disponible
-  primary: "openrouter/free",
-  // Fallback fiable au cas où le routeur gratuit ne trouve rien
+  // On abandonne openrouter/free car il route parfois vers des modèles qui ne savent pas 
+  // utiliser les outils (et qui affichent des balises "TOOLCALL>" à l'écran).
+  // Gemini 2.0 Flash Lite est 100% gratuit, extrêmement rapide et gère parfaitement les outils.
+  primary: "google/gemini-2.0-flash-lite-preview-02-05:free",
+  // Fallback fiable
   fallback: "meta-llama/llama-3.3-70b-instruct:free",
 };
 
