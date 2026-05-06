@@ -6,6 +6,7 @@
  */
 
 import { createOpenAI } from "@ai-sdk/openai";
+import { groq } from "@ai-sdk/groq";
 import { streamText, tool } from "ai";
 import { z } from "zod";
 
@@ -50,13 +51,13 @@ RÈGLES GÉNÉRALES :
 8. N'utilise PAS d'émojis (ou très exceptionnellement) dans le texte généré.
 9. Ne fais JAMAIS de tableaux Markdown (utilise uniquement du texte ou des listes à puces).`;
 
-// ─── Modèles IA (OpenRouter exclusivement pour la stabilité) ────────────────
+// ─── Modèles IA ────────────────────────────────────────────
 const MODELS = [
-  // 1. Gemini 2.0 Flash Lite : Très rapide, excellent avec les outils, limites correctes.
+  // 1. Groq (Ultra-rapide, limites très larges, Llama 3.3 70B natif)
+  { provider: groq, id: "llama-3.3-70b-versatile" },
+  // 2. OpenRouter Gemini 2.0 (Très rapide et stable)
   { provider: openrouter, id: "google/gemini-2.0-flash-lite-preview-02-05:free" },
-  // 2. Llama 3.3 70B : Excellent fallback, très intelligent, gratuit.
-  { provider: openrouter, id: "meta-llama/llama-3.3-70b-instruct:free" },
-  // 3. Fallback générique en cas de surcharge des deux premiers.
+  // 3. OpenRouter Free (Fallback de la dernière chance)
   { provider: openrouter, id: "openrouter/free" }
 ];
 
@@ -162,9 +163,9 @@ const tools = {
 
 // ─── Handler principal ──────────────────────────────────────────────────────
 export async function POST(req: Request) {
-  if (!process.env.OPENROUTER_API) {
+  if (!process.env.OPENROUTER_API && !process.env.GROQ_API_KEY) {
     return new Response(
-      JSON.stringify({ error: "Clé API OpenRouter manquante" }),
+      JSON.stringify({ error: "Clés API manquantes" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -178,22 +179,32 @@ export async function POST(req: Request) {
 
     // Essayer les modèles dans l'ordre (Groq en priorité, puis les fallbacks)
     for (const modelConfig of MODELS) {
-      // 2 tentatives par modèle
+      // Timeout par modèle : Groq est ultra-rapide donc 15s suffisent,
+      // OpenRouter est plus lent donc on lui laisse 25s.
+      const timeoutMs = modelConfig.id.includes("llama-3.3") ? 15000 : 25000;
+
       for (let attempt = 1; attempt <= 2; attempt++) {
         try {
-          console.log(`>>> Tentative ${attempt}/2 avec ${modelConfig.id}...`);
-          const result = await streamText({
-            model: modelConfig.provider(modelConfig.id) as any,
-            system: SYSTEM_PROMPT,
-            messages: recentMessages,
-            tools,
-            maxSteps: 5,
-          });
+          console.log(`>>> Tentative ${attempt}/2 avec ${modelConfig.id} (timeout ${timeoutMs / 1000}s)...`);
+
+          // Promise.race : si streamText ne répond pas dans le délai, on passe au suivant
+          const result = await Promise.race([
+            streamText({
+              model: modelConfig.provider(modelConfig.id) as any,
+              system: SYSTEM_PROMPT,
+              messages: recentMessages,
+              tools,
+              maxSteps: 5,
+            }),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error(`Timeout ${timeoutMs}ms dépassé`)), timeoutMs)
+            ),
+          ]);
+
           return result.toDataStreamResponse();
         } catch (e: any) {
           console.warn(`>>> Échec ${modelConfig.id} (tentative ${attempt}):`, e.message);
-          // Attendre 1s avant de réessayer
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, 500));
         }
       }
     }
