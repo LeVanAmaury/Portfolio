@@ -11,9 +11,14 @@ import type { ResumeResponse } from "@/lib/types";
 const SUGGESTIONS = [
   { text: "Présente-moi Amaury", emoji: "👋" },
   { text: "Quels sont ses projets ?", emoji: "🚀" },
+  { text: "Ses projets en Python ?", emoji: "🐍" },
   { text: "Quelles sont ses compétences ?", emoji: "⚡" },
-  { text: "Quel est son rôle à la CCMO ?", emoji: "💼" },
   { text: "Ses compétences Backend", emoji: "💻" },
+  { text: "Ses compétences Frontend", emoji: "🎨" },
+  { text: "Ses compétences en Data", emoji: "📊" },
+  { text: "Quel est son rôle à la CCMO ?", emoji: "💼" },
+  { text: "Quelles sont ses anciennes expériences ?", emoji: "⏪" },
+  { text: "Parle-moi de ses études", emoji: "🎓" },
   { text: "Comment le contacter ?", emoji: "📫" },
 ];
 
