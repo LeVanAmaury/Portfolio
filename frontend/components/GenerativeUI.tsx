@@ -4,8 +4,9 @@
  * GenerativeUI – Composants visuels pour les résultats d'outils IA
  */
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { LayoutGrid, Cpu, User, Mail, CheckCircle2, Github, Linkedin, Download, Globe } from "lucide-react";
+import { LayoutGrid, Cpu, User, Mail, CheckCircle2, Github, Linkedin, Download, Globe, Send, Loader2 } from "lucide-react";
 
 import { ProjectCard } from "@/components/ui/ProjectCard";
 import { ProjectModal } from "@/components/ui/ProjectModal";
@@ -170,16 +171,63 @@ export function ResumeDisplay({ resume }: { resume: ResumeResponse }) {
   );
 }
 
-export function ContactSuccess() {
+export function ContactForm() {
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setStatus("submitting");
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+      const url = new URL(`${backendUrl}/api/contact`);
+      Object.entries(data).forEach(([k, v]) => url.searchParams.set(k, v as string));
+      
+      const res = await fetch(url.toString(), { method: "POST" });
+      if (res.ok) setStatus("success");
+      else setStatus("error");
+    } catch {
+      setStatus("error");
+    }
+  };
+
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-      <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 dark:bg-green-500/10 border border-emerald-200 dark:border-green-500/20 text-emerald-700 dark:text-green-400">
-        <CheckCircle2 size={20} />
-        <div className="flex flex-col">
-          <span className="text-sm font-bold">Message envoyé ! 🎉</span>
-          <span className="text-[11px] opacity-80">Amaury vous recontactera très vite.</span>
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 max-w-md w-full">
+      {status === "success" ? (
+        <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 dark:bg-green-500/10 border border-emerald-200 dark:border-green-500/20 text-emerald-700 dark:text-green-400">
+          <CheckCircle2 size={20} />
+          <div className="flex flex-col">
+            <span className="text-sm font-bold">Message envoyé ! 🎉</span>
+            <span className="text-[11px] opacity-80">Amaury vous recontactera très vite.</span>
+          </div>
         </div>
-      </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="p-4 rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-white/5 space-y-3 shadow-sm">
+          <h3 className="text-sm font-bold text-stone-800 dark:text-white mb-2">Envoyer un message</h3>
+          <input 
+            type="text" name="name" required placeholder="Votre nom" 
+            className="w-full text-sm p-2.5 rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all dark:text-white"
+          />
+          <input 
+            type="email" name="email" required placeholder="Votre email" 
+            className="w-full text-sm p-2.5 rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all dark:text-white"
+          />
+          <textarea 
+            name="message" required placeholder="Votre message..." rows={3}
+            className="w-full text-sm p-2.5 rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50 dark:bg-white/5 focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all resize-none dark:text-white"
+          />
+          {status === "error" && <p className="text-red-500 text-xs">Une erreur est survenue. Veuillez réessayer.</p>}
+          <button 
+            type="submit" disabled={status === "submitting"}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold transition-all disabled:opacity-50"
+          >
+            {status === "submitting" ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+            Envoyer
+          </button>
+        </form>
+      )}
 
       <div className="p-4 rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-white/5 space-y-3 shadow-sm">
         <p className="text-[10px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-widest">En attendant, retrouvez-moi ici :</p>

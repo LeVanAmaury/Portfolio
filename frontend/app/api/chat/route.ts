@@ -50,7 +50,7 @@ RÈGLES GÉNÉRALES :
 3. PARCOURS/CV/ALTERNANCE → appelle 'get_resume' immédiatement (utilise les filtres pour affiner).
 4. N'écris AUCUN texte d'intro avant d'appeler un outil.
 5. Après réception des données, fais une réponse TRÈS CONCISE (2 ou 3 phrases maximum), structurée et chaleureuse. Va droit au but.
-6. CONTACT → utilise 'submit_contact_form'.
+6. CONTACT → utilise 'show_contact_form' pour afficher le formulaire interactif à l'utilisateur.
 7. Pour les questions simples, réponds directement sans outil.
 8. N'utilise PAS d'émojis (ou très exceptionnellement) dans le texte généré.
 9. Ne fais JAMAIS de tableaux Markdown (utilise uniquement du texte ou des listes à puces).`;
@@ -155,23 +155,12 @@ const tools = {
     },
   }),
 
-  submit_contact_form: tool({
-    description: "Envoie un message de contact à Amaury.",
-    parameters: z.object({
-      name: z.string(),
-      email: z.string().email(),
-      message: z.string(),
-    }),
-    execute: async (params) => {
-      console.log("[Tool] submit_contact_form");
-      const url = new URL(`${BACKEND_URL}/api/contact`);
-      Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-      try {
-        const res = await fetchWithTimeout(url.toString(), { method: "POST" });
-        return await res.json();
-      } catch {
-        return { error: "L'envoi du message a échoué. Réessayez plus tard." };
-      }
+  show_contact_form: tool({
+    description: "Affiche le formulaire de contact à l'utilisateur pour qu'il puisse envoyer un message à Amaury.",
+    parameters: z.object({}),
+    execute: async () => {
+      console.log("[Tool] show_contact_form");
+      return { success: true };
     },
   }),
 };

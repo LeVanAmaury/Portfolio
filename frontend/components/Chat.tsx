@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, Loader2, Bot, User, Sparkles, Trash2, AlertCircle } from "lucide-react";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { MarkdownText } from "./MarkdownText";
-import { ProjectsGrid, SkillsGrid, ResumeDisplay, ContactSuccess } from "@/components/GenerativeUI";
+import { ProjectsGrid, SkillsGrid, ResumeDisplay, ContactForm } from "@/components/GenerativeUI";
 import type { ResumeResponse } from "@/lib/types";
 
 const SUGGESTIONS = [
@@ -90,8 +90,8 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading }: {
               {tool.toolName === "get_resume" && (
                 <ResumeDisplay resume={tool.result as ResumeResponse} />
               )}
-              {tool.toolName === "submit_contact_form" && (
-                <ContactSuccess />
+              {tool.toolName === "show_contact_form" && (
+                <ContactForm />
               )}
             </div>
           );
