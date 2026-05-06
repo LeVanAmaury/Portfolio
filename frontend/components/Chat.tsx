@@ -263,7 +263,7 @@ export function Chat() {
       {/* Suggestions rapides & Reset (après premier message) */}
       {!isEmpty && (
         <div className="px-4 pb-2 flex items-center justify-between gap-2">
-          <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1 flex-1 mask-linear-right pr-4">
+          <div className="flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-1 flex-1 mask-linear-right pr-4">
             {SUGGESTIONS.map((s) => (
               <button
                 key={s.text}

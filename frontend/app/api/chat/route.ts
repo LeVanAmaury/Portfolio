@@ -44,7 +44,7 @@ RÈGLES GÉNÉRALES :
 2. PROJETS → appelle 'get_projects' immédiatement.
 3. PARCOURS/CV/ALTERNANCE → appelle 'get_resume' immédiatement (utilise les filtres pour affiner).
 4. N'écris AUCUN texte d'intro avant d'appeler un outil.
-5. Après réception des données, fais une réponse structurée, aérée et chaleureuse.
+5. Après réception des données, fais une réponse TRÈS CONCISE, structurée et chaleureuse. Ne fais pas de longs discours.
 6. CONTACT → utilise 'submit_contact_form'.
 7. Pour les questions simples, réponds directement sans outil.
 8. N'utilise PAS d'émojis (ou très exceptionnellement) dans le texte généré.
@@ -61,12 +61,18 @@ const MODELS = {
 // Timeout de 60s pour la fonction Vercel (pour laisser le temps à Render de se réveiller)
 export const maxDuration = 60;
 
-// ─── Fetch avec timeout ─────────────────────────────────────────────────────
+// ─── Fetch avec timeout et cache ────────────────────────────────────────────
 async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 55000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, { ...options, signal: controller.signal });
+    // On cache agressivement les requêtes (1 heure) pour que Vercel réponde instantanément 
+    // sans avoir à attendre le backend Render !
+    const res = await fetch(url, { 
+      ...options, 
+      signal: controller.signal,
+      next: { revalidate: 3600 }
+    });
     clearTimeout(timer);
     return res;
   } catch (e) {
