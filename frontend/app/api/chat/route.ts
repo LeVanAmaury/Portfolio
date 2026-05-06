@@ -6,7 +6,6 @@
  */
 
 import { createOpenAI } from "@ai-sdk/openai";
-import { groq } from "@ai-sdk/groq";
 import { streamText, tool } from "ai";
 import { z } from "zod";
 
@@ -51,13 +50,13 @@ RÈGLES GÉNÉRALES :
 8. N'utilise PAS d'émojis (ou très exceptionnellement) dans le texte généré.
 9. Ne fais JAMAIS de tableaux Markdown (utilise uniquement du texte ou des listes à puces).`;
 
-// ─── Modèles IA ────────────────────────────────────────────
+// ─── Modèles IA (OpenRouter exclusivement pour la stabilité) ────────────────
 const MODELS = [
-  // 1. Groq (Ultra-rapide, limites très larges, Llama 3.3 70B natif)
-  { provider: groq, id: "llama-3.3-70b-versatile" },
-  // 2. OpenRouter Gemini 2.0 (Très rapide et stable)
+  // 1. Gemini 2.0 Flash Lite : Très rapide, excellent avec les outils, limites correctes.
   { provider: openrouter, id: "google/gemini-2.0-flash-lite-preview-02-05:free" },
-  // 3. OpenRouter Free (Fallback de la dernière chance)
+  // 2. Llama 3.3 70B : Excellent fallback, très intelligent, gratuit.
+  { provider: openrouter, id: "meta-llama/llama-3.3-70b-instruct:free" },
+  // 3. Fallback générique en cas de surcharge des deux premiers.
   { provider: openrouter, id: "openrouter/free" }
 ];
 
@@ -163,9 +162,9 @@ const tools = {
 
 // ─── Handler principal ──────────────────────────────────────────────────────
 export async function POST(req: Request) {
-  if (!process.env.OPENROUTER_API && !process.env.GROQ_API_KEY) {
+  if (!process.env.OPENROUTER_API) {
     return new Response(
-      JSON.stringify({ error: "Clés API manquantes" }),
+      JSON.stringify({ error: "Clé API OpenRouter manquante" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
