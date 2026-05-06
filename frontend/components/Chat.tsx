@@ -9,10 +9,12 @@ import { ProjectsGrid, SkillsGrid, ResumeDisplay, ContactSuccess } from "@/compo
 import type { ResumeResponse } from "@/lib/types";
 
 const SUGGESTIONS = [
-  { text: "Quels sont tes projets ?", emoji: "🚀" },
-  { text: "Ton rôle à la CCMO ?", emoji: "💼" },
-  { text: "Tes compétences techniques ?", emoji: "⚡" },
-  { text: "Parle-moi de ton alternance", emoji: "🎓" },
+  { text: "Présente-moi Amaury", emoji: "👋" },
+  { text: "Quels sont ses projets ?", emoji: "🚀" },
+  { text: "Quelles sont ses compétences ?", emoji: "⚡" },
+  { text: "Quel est son rôle à la CCMO ?", emoji: "💼" },
+  { text: "Ses compétences Backend", emoji: "💻" },
+  { text: "Comment le contacter ?", emoji: "📫" },
 ];
 
 // ─── Rendu d'un message individuel ───────────────────────────────────────────

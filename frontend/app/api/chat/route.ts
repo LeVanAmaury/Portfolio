@@ -40,7 +40,7 @@ RÈGLES DE PRÉSENTATION DU PARCOURS (Quand on demande de parler d'Amaury) :
 - Ajoute une citation ou une réflexion qui le résume et le représente.
 
 RÈGLES GÉNÉRALES :
-1. COMPÉTENCES → appelle 'get_skills' immédiatement (sans aucun paramètre pour tout récupérer d'un coup).
+1. COMPÉTENCES → appelle 'get_skills' immédiatement (utilise le filtre de catégorie si on demande un domaine précis).
 2. PROJETS → appelle 'get_projects' immédiatement.
 3. PARCOURS/CV/ALTERNANCE → appelle 'get_resume' immédiatement (utilise les filtres pour affiner).
 4. N'écris AUCUN texte d'intro avant d'appeler un outil.
@@ -94,13 +94,21 @@ const tools = {
   }),
 
   get_skills: tool({
-    description: "Récupère TOUTES les compétences techniques d'Amaury d'un seul coup.",
-    parameters: z.object({}),
-    execute: async () => {
-      console.log("[Tool] get_skills");
+    description: "Récupère les compétences techniques d'Amaury. Peut filtrer par catégorie.",
+    parameters: z.object({ category: z.string().optional().describe("Catégorie (ex: 'Backend', 'Frontend', 'Data'). Optionnel.") }),
+    execute: async ({ category }) => {
+      console.log("[Tool] get_skills", category ? `(${category})` : "");
       try {
         const res = await fetchWithTimeout(`${BACKEND_URL}/api/skills`);
-        return await res.json();
+        const data = await res.json();
+        
+        if (category && Array.isArray(data)) {
+            const catLower = category.toLowerCase();
+            const filtered = data.filter((s: any) => s.category?.toLowerCase().includes(catLower));
+            // Si le filtre ne trouve rien (ex: AI donne un nom bizarre), on renvoie tout
+            return filtered.length > 0 ? filtered : data;
+        }
+        return data;
       } catch {
         return { error: "Les compétences sont temporairement indisponibles." };
       }
