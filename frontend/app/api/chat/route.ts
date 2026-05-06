@@ -173,33 +173,24 @@ export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
-    // Limiter à 12 messages max pour éviter les timeouts
-    const recentMessages = messages.slice(-12);
+    // Limiter à 8 messages max pour rester dans la limite de tokens Groq (64K)
+    const recentMessages = messages.slice(-8);
     console.log(`>>> ${recentMessages.length}/${messages.length} messages envoyés`);
 
     // Essayer les modèles dans l'ordre (Groq en priorité, puis les fallbacks)
     for (const modelConfig of MODELS) {
-      // Timeout par modèle : Groq est ultra-rapide donc 15s suffisent,
-      // OpenRouter est plus lent donc on lui laisse 25s.
-      const timeoutMs = modelConfig.id.includes("llama-3.3") ? 15000 : 25000;
-
       for (let attempt = 1; attempt <= 2; attempt++) {
         try {
-          console.log(`>>> Tentative ${attempt}/2 avec ${modelConfig.id} (timeout ${timeoutMs / 1000}s)...`);
+          console.log(`>>> Tentative ${attempt}/2 avec ${modelConfig.id}...`);
 
-          // Promise.race : si streamText ne répond pas dans le délai, on passe au suivant
-          const result = await Promise.race([
-            streamText({
-              model: modelConfig.provider(modelConfig.id) as any,
-              system: SYSTEM_PROMPT,
-              messages: recentMessages,
-              tools,
-              maxSteps: 5,
-            }),
-            new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error(`Timeout ${timeoutMs}ms dépassé`)), timeoutMs)
-            ),
-          ]);
+          const result = streamText({
+            model: modelConfig.provider(modelConfig.id) as any,
+            system: SYSTEM_PROMPT,
+            messages: recentMessages,
+            tools,
+            maxSteps: 5,
+            maxTokens: 1024,
+          });
 
           return result.toDataStreamResponse();
         } catch (e: any) {
