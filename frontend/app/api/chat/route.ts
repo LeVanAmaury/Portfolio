@@ -202,10 +202,14 @@ export async function POST(req: Request) {
         if (!body) throw new Error("Pas de body dans la réponse");
 
         // CRITICAL: Lire le premier chunk pour vérifier que le stream fonctionne.
-        // Si Groq a renvoyé une erreur, ça plantera ICI (dans le try/catch)
-        // au lieu de planter APRÈS le return (ce qui crashe Vercel).
+        // Timeout de 10s : si le modèle ne renvoie rien, on bascule sur le suivant.
         const reader = body.getReader();
-        const firstRead = await reader.read();
+        const firstRead = await Promise.race([
+          reader.read(),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Timeout 10s: aucune donnée reçue")), 10000)
+          ),
+        ]);
 
         if (firstRead.done && !firstRead.value) {
           throw new Error("Stream vide");
