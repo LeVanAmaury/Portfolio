@@ -9,6 +9,11 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { streamText, tool } from "ai";
 import { z } from "zod";
 
+const groq = createOpenAI({
+  baseURL: "https://api.groq.com/openai/v1",
+  apiKey: process.env.GROQ_API_KEY!,
+});
+
 const openrouter = createOpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_API!,
@@ -50,13 +55,15 @@ RÈGLES GÉNÉRALES :
 8. N'utilise PAS d'émojis (ou très exceptionnellement) dans le texte généré.
 9. Ne fais JAMAIS de tableaux Markdown (utilise uniquement du texte ou des listes à puces).`;
 
-// ─── Modèles gratuits OpenRouter ────────────────────────────────────────────
-const MODELS = {
-  // openrouter/free route automatiquement vers le meilleur modèle gratuit disponibl
-  primary: "openrouter/free",
-  // Fallback fiable au cas où le routeur gratuit ne trouve rien
-  fallback: "meta-llama/llama-3.3-70b-instruct:free",
-};
+// ─── Modèles IA ────────────────────────────────────────────
+const MODELS = [
+  // 1. Groq (Ultra-rapide, limites très larges, Llama 3.3 70B natif)
+  { provider: groq, id: "llama-3.3-70b-versatile" },
+  // 2. OpenRouter Gemini 2.0 (Très rapide et stable)
+  { provider: openrouter, id: "google/gemini-2.0-flash-lite-preview-02-05:free" },
+  // 3. OpenRouter Free (Fallback de la dernière chance)
+  { provider: openrouter, id: "openrouter/free" }
+];
 
 // Timeout de 60s pour la fonction Vercel (pour laisser le temps à Render de se réveiller)
 export const maxDuration = 60;
@@ -171,9 +178,9 @@ const tools = {
 
 // ─── Handler principal ──────────────────────────────────────────────────────
 export async function POST(req: Request) {
-  if (!process.env.OPENROUTER_API) {
+  if (!process.env.OPENROUTER_API && !process.env.GROQ_API_KEY) {
     return new Response(
-      JSON.stringify({ error: "Clé API OpenRouter manquante" }),
+      JSON.stringify({ error: "Clés API manquantes" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -185,14 +192,14 @@ export async function POST(req: Request) {
     const recentMessages = messages.slice(-12);
     console.log(`>>> ${recentMessages.length}/${messages.length} messages envoyés`);
 
-    // Essayer le modèle principal, puis le fallback
-    for (const modelId of [MODELS.primary, MODELS.fallback]) {
-      // 3 tentatives par modèle pour contrer l'instabilité des API gratuites
-      for (let attempt = 1; attempt <= 3; attempt++) {
+    // Essayer les modèles dans l'ordre (Groq en priorité, puis les fallbacks)
+    for (const modelConfig of MODELS) {
+      // 2 tentatives par modèle
+      for (let attempt = 1; attempt <= 2; attempt++) {
         try {
-          console.log(`>>> Tentative ${attempt}/3 avec ${modelId}...`);
+          console.log(`>>> Tentative ${attempt}/2 avec ${modelConfig.id}...`);
           const result = await streamText({
-            model: openrouter(modelId) as any,
+            model: modelConfig.provider(modelConfig.id) as any,
             system: SYSTEM_PROMPT,
             messages: recentMessages,
             tools,
@@ -200,7 +207,7 @@ export async function POST(req: Request) {
           });
           return result.toDataStreamResponse();
         } catch (e: any) {
-          console.warn(`>>> Échec ${modelId} (tentative ${attempt}):`, e.message);
+          console.warn(`>>> Échec ${modelConfig.id} (tentative ${attempt}):`, e.message);
           // Attendre 1s avant de réessayer
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
