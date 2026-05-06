@@ -1,14 +1,18 @@
 /**
- * Route API Next.js – Chatbot IA via OpenRouter (modèles gratuits)
+ * Route API Next.js – Chatbot IA
  * 
- * Stratégie : Llama 3.3 70B (principal) → Gemini 2.5 Flash (fallback)
- * Les deux sont gratuits, stables, et supportent le tool calling.
+ * Stratégie : Groq Llama 3.3 70B (ultra-rapide) → OpenRouter Llama 3.3 (fallback) → openrouter/free (dernier recours)
  */
 
 import { createOpenAI } from "@ai-sdk/openai";
-import { groq } from "@ai-sdk/groq";
 import { streamText, tool } from "ai";
 import { z } from "zod";
+
+// Groq via l'API compatible OpenAI (pas @ai-sdk/groq qui a un bug stream-start)
+const groqProvider = createOpenAI({
+  baseURL: "https://api.groq.com/openai/v1",
+  apiKey: process.env.GROQ_API_KEY || "dummy",
+});
 
 const openrouter = createOpenAI({
   baseURL: "https://openrouter.ai/api/v1",
@@ -53,11 +57,11 @@ RÈGLES GÉNÉRALES :
 
 // ─── Modèles IA ────────────────────────────────────────────
 const MODELS = [
-  // 1. Groq (Ultra-rapide, limites très larges, Llama 3.3 70B natif)
-  { provider: groq, id: "llama-3.3-70b-versatile" },
-  // 2. OpenRouter Gemini 2.0 (Très rapide et stable)
-  { provider: openrouter, id: "google/gemini-2.0-flash-lite-preview-02-05:free" },
-  // 3. OpenRouter Free (Fallback de la dernière chance)
+  // 1. Groq : Ultra-rapide (~800 tokens/s), gratuit, Llama 3.3 70B
+  { provider: groqProvider, id: "llama-3.3-70b-versatile" },
+  // 2. OpenRouter Llama 3.3 70B : Même modèle, routé par OpenRouter (plus lent mais stable)
+  { provider: openrouter, id: "meta-llama/llama-3.3-70b-instruct:free" },
+  // 3. OpenRouter Free : Dernier recours, routeur automatique
   { provider: openrouter, id: "openrouter/free" }
 ];
 
@@ -177,11 +181,12 @@ export async function POST(req: Request) {
     const recentMessages = messages.slice(-8);
     console.log(`>>> ${recentMessages.length}/${messages.length} messages envoyés`);
 
-    // Essayer les modèles dans l'ordre (Groq en priorité, puis les fallbacks)
+    // Essayer les modèles dans l'ordre (Groq → Llama OpenRouter → openrouter/free)
     for (const modelConfig of MODELS) {
-      for (let attempt = 1; attempt <= 2; attempt++) {
+      // 1 seule tentative par modèle pour basculer vite en cas d'échec
+      for (let attempt = 1; attempt <= 1; attempt++) {
         try {
-          console.log(`>>> Tentative ${attempt}/2 avec ${modelConfig.id}...`);
+          console.log(`>>> Essai avec ${modelConfig.id}...`);
 
           const result = await streamText({
             model: modelConfig.provider(modelConfig.id) as any,
