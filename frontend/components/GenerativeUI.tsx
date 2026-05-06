@@ -15,7 +15,6 @@ import { ProfileModal } from "@/components/ui/ProfileModal";
 import { SkillBadge } from "@/components/ui/SkillBadge";
 import { ExperienceCard } from "@/components/ui/ExperienceCard";
 import type { Project, Skill, ResumeResponse, Experience } from "@/lib/types";
-import { useState } from "react";
 
 // ─── Sous-composants ────────────────────────────────────────────────────────
 
