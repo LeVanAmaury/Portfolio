@@ -67,6 +67,8 @@ FALLBACK_NARRATIVE = {
     Les choses dont je suis le plus fier dans cette passion qui est le code c'est d'avoir réussi à aidé ma famille au quotidien avec mes projets.
     Dans 5 ans je me vois en tant que chef de projet ou proche de ce poste."""
     ,
+    "skills_reflection": "Le BUT m'a permis de comprendre le travail d'équipe, la coordination et plein de nouveaux langages.",
+    "difficulties_overcome": "J'ai eu un peu de mal à comprendre qu'il fallait pas foncer tête baissé dans le code et plutot faire de la conception au départ mais maintenant je m'y oblige et je fais valider avant de commencer à coder.",
     "pn_competencies": [
         {
             "competence": "Réaliser un développement d'application",

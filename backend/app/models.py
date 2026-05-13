@@ -78,8 +78,8 @@ class PortfolioNarrative(BaseModel):
     target_job: str = Field(description="Métier envisagé")
     personal_quote: str = Field(description="Citation qui résume et représente Amaury")
     narrative_text: str = Field(description="Récit narratif introspectif (1 page)")
-    skills_reflection: str = Field(description="Réflexion sur les acquis")
-    difficulties_overcome: str = Field(description="Difficultés surmontées, adaptation, autonomie")
+    skills_reflection: str = Field(default="", description="Réflexion sur les acquis")
+    difficulties_overcome: str = Field(default="", description="Difficultés surmontées, adaptation, autonomie")
     pn_competencies: list[dict] = Field(default_factory=list, description="Compétences PN BUT Informatique")
 
 
