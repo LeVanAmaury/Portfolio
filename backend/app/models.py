@@ -47,6 +47,40 @@ class Experience(BaseModel):
     tags: list[str] = Field(default_factory=list, description="Tags (alternance, stage, etc.)")
     location: str | None = Field(default=None, description="Ville / Région")
     website_url: str | None = Field(default=None, description="Lien vers le site de l'entreprise")
+    narrative_detail: str | None = Field(default=None, description="Récit narratif détaillé de l'expérience (introspection)")
+
+
+class Education(BaseModel):
+    """Formation académique d'Amaury."""
+    id: str = Field(description="Identifiant unique de la formation")
+    institution: str = Field(description="Nom de l'établissement")
+    degree: str = Field(description="Intitulé du diplôme")
+    duration: str = Field(description="Période (ex: 2023 – 2026)")
+    description: str = Field(default="", description="Description de la formation")
+    location: str | None = Field(default=None, description="Ville")
+
+
+class Reference(BaseModel):
+    """Personne pouvant attester des capacités d'Amaury (recommandation)."""
+    id: str = Field(description="Identifiant unique")
+    name: str = Field(description="Nom complet de la personne")
+    role: str = Field(description="Rôle (ex: Tuteur d'entreprise, Enseignant)")
+    company: str = Field(description="Entreprise ou institution")
+    quote: str = Field(description="Citation / recommandation")
+    relationship: str = Field(description="Relation avec Amaury (ex: Tuteur lors de l'alternance)")
+
+
+class PortfolioNarrative(BaseModel):
+    """Narratif introspectif du parcours d'Amaury pour l'évaluation portfolio."""
+    title: str = Field(description="Titre du narratif")
+    objective: str = Field(description="Objectif professionnel clair")
+    specialty: str = Field(description="Spécialité / domaine de prédilection")
+    target_job: str = Field(description="Métier envisagé")
+    personal_quote: str = Field(description="Citation qui résume et représente Amaury")
+    narrative_text: str = Field(description="Récit narratif introspectif (1 page)")
+    skills_reflection: str = Field(description="Réflexion sur les acquis")
+    difficulties_overcome: str = Field(description="Difficultés surmontées, adaptation, autonomie")
+    pn_competencies: list[dict] = Field(default_factory=list, description="Compétences PN BUT Informatique")
 
 
 class ResumeResponse(BaseModel):
@@ -60,5 +94,5 @@ class ResumeResponse(BaseModel):
     linkedin: str | None = None
     location: str
     experiences: list[Experience]
-    education: list[dict]
+    education: list[Education]
     resume_url: str | None = Field(default=None, description="Lien vers le CV PDF")

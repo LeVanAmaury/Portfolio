@@ -1,15 +1,15 @@
 """
 Routes FastAPI pour le Portfolio d'Amaury.
-Expose les endpoints /api/projects, /api/skills et /api/resume.
+Expose les endpoints /api/projects, /api/skills, /api/resume, /api/references, /api/narrative.
 """
 
 import json
 from pathlib import Path
 import os
 import resend
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Body
 
-from app.models import Project, Skill, SkillCategory, ResumeResponse, Experience
+from app.models import Project, Skill, SkillCategory, ResumeResponse, Experience, Education, Reference, PortfolioNarrative
 from app.supabase_client import supabase
 
 router = APIRouter(prefix="/api", tags=["Portfolio"])
@@ -17,8 +17,129 @@ router = APIRouter(prefix="/api", tags=["Portfolio"])
 # Configuration Resend
 resend.api_key = os.environ.get("RESEND_API_KEY")
 
-# Les fonctions de chargement JSON sont conservées en secours ou supprimées.
-# Ici nous passons directement à Supabase.
+
+# ─── Données de fallback (à compléter par Amaury) ─────────────────────────────
+# Ces données sont utilisées si les tables Supabase n'existent pas encore.
+# Elles permettent au portfolio de fonctionner immédiatement.
+
+FALLBACK_EDUCATION = [
+    {
+        "id": "but-info",
+        "institution": "UPJV – IUT d'Amiens",
+        "degree": "BUT Informatique – Parcours Réalisation d'Applications",
+        "duration": "2023 – 2026",
+        "description": "À COMPLÉTER – Décris ta formation : les matières clés, les projets marquants, ce que tu as appris de plus important.",
+        "location": "Amiens"
+    },
+    {
+        "id": "bac",
+        "institution": "À COMPLÉTER – Nom du lycée",
+        "degree": "À COMPLÉTER – Baccalauréat (filière)",
+        "duration": "À COMPLÉTER – Année d'obtention",
+        "description": "À COMPLÉTER – Mentionne ta mention, tes spécialités, ce qui t'a donné envie de poursuivre en informatique.",
+        "location": "À COMPLÉTER"
+    }
+]
+
+FALLBACK_REFERENCES = [
+    {
+        "id": "ref-tuteur-ccmo",
+        "name": "À COMPLÉTER – Nom du tuteur",
+        "role": "Tuteur d'entreprise",
+        "company": "CCMO Mutuelle",
+        "quote": "À COMPLÉTER – Demande une recommandation à ton tuteur ou écris ce qu'il dirait de toi.",
+        "relationship": "Tuteur lors de mon alternance en développement Python à CCMO Mutuelle (2024-2025)"
+    },
+    {
+        "id": "ref-enseignant",
+        "name": "À COMPLÉTER – Nom d'un enseignant",
+        "role": "Enseignant",
+        "company": "UPJV – IUT d'Amiens",
+        "quote": "À COMPLÉTER – Citation ou recommandation de cet enseignant.",
+        "relationship": "À COMPLÉTER – Professeur de [matière] qui a suivi mon parcours en BUT1/BUT2"
+    },
+    {
+        "id": "ref-collegue",
+        "name": "À COMPLÉTER – Nom d'un collègue ou collaborateur",
+        "role": "À COMPLÉTER – Collègue / Chef de projet",
+        "company": "À COMPLÉTER",
+        "quote": "À COMPLÉTER – Ce que cette personne dirait de ta collaboration.",
+        "relationship": "À COMPLÉTER – Collaboration sur quel projet, dans quel contexte"
+    }
+]
+
+FALLBACK_NARRATIVE = {
+    "title": "Mon parcours vers le développement – Curiosité, persévérance et passion",
+    "objective": "À COMPLÉTER – Quel est ton objectif professionnel ? Ex: Devenir développeur Python/IA dans une entreprise innovante, contribuer à des projets à impact...",
+    "specialty": "À COMPLÉTER – Ton domaine de prédilection. Ex: Développement Backend Python, automatisation, data engineering...",
+    "target_job": "À COMPLÉTER – Le métier que tu vises. Ex: Développeur Python, Data Engineer, Développeur Full-Stack...",
+    "personal_quote": "À COMPLÉTER – Une citation ou réflexion personnelle qui te résume. Ex: une phrase d'un auteur qui t'inspire, ou ta propre philosophie.",
+    "narrative_text": """À COMPLÉTER – C'est le cœur de ton portfolio. Écris 1 page de narratif introspectif.
+
+Guide pour l'écriture :
+
+1. D'OÙ TU VIENS : Raconte comment tu es arrivé dans l'informatique. Qu'est-ce qui t'a donné envie ? Un événement déclencheur ? Une passion d'enfance ?
+
+2. TON PARCOURS BUT : Les moments clés de BUT1 et BUT2. Qu'est-ce qui t'a marqué ? Un projet, un cours, une rencontre ?
+
+3. TES EXPÉRIENCES LES PLUS RÉUSSIES (1-2 en détail) :
+   - Le contexte : où, quand, avec qui
+   - Ce que tu as fait concrètement
+   - Les défis que tu as rencontrés
+   - Ce que tu as appris
+   - Pourquoi c'est ta fierté
+
+4. L'ALTERNANCE À CCMO : Comment tu as vécu cette expérience. Ce que tu as apporté, ce que tu as reçu.
+
+5. TA VISION : Où tu te vois dans 3-5 ans. Quel type de projets te passionnent.""",
+    "skills_reflection": """À COMPLÉTER – Réflexion sur tes acquis.
+
+Exemples de questions à te poser :
+- Quelles compétences as-tu acquises que tu n'avais pas en arrivant en BUT ?
+- Qu'est-ce qui te surprend dans ta propre progression ?
+- Quelles sont les compétences que tu maîtrises le mieux et pourquoi ?
+- Comment tes compétences techniques et humaines se complètent-elles ?""",
+    "difficulties_overcome": """À COMPLÉTER – Difficultés surmontées.
+
+Le prof attend de l'introspection sur :
+- ADAPTATION : Comment tu t'es adapté à de nouveaux environnements (entreprise, projets inconnus)
+- AUTONOMIE : Des moments où tu as dû te débrouiller seul
+- INNOVATION : Des solutions créatives que tu as trouvées
+- RELATIONNEL : Comment tu gères le travail en équipe, la communication
+- CONNAISSANCE DES PARCOURS/MÉTIERS : Comment ta vision du métier a évolué""",
+    "pn_competencies": [
+        {
+            "competence": "Réaliser un développement d'application",
+            "level": "À COMPLÉTER – Ton niveau (Débutant/Intermédiaire/Avancé)",
+            "evidence": "À COMPLÉTER – Exemples concrets de projets/réalisations qui prouvent cette compétence"
+        },
+        {
+            "competence": "Optimiser des applications",
+            "level": "À COMPLÉTER",
+            "evidence": "À COMPLÉTER"
+        },
+        {
+            "competence": "Administrer des systèmes informatiques",
+            "level": "À COMPLÉTER",
+            "evidence": "À COMPLÉTER"
+        },
+        {
+            "competence": "Gérer des données",
+            "level": "À COMPLÉTER",
+            "evidence": "À COMPLÉTER"
+        },
+        {
+            "competence": "Conduire un projet",
+            "level": "À COMPLÉTER",
+            "evidence": "À COMPLÉTER"
+        },
+        {
+            "competence": "Collaborer au sein d'une équipe",
+            "level": "À COMPLÉTER",
+            "evidence": "À COMPLÉTER"
+        }
+    ]
+}
 
 
 @router.get(
@@ -91,10 +212,57 @@ def get_resume() -> ResumeResponse:
 
     profile["experiences"] = experiences
     
-    # 3. Éducation
-    profile["education"] = []
+    # 3. Éducation – Charger depuis Supabase ou utiliser le fallback
+    try:
+        edu_res = supabase.table("education").select("*").order("id").execute()
+        if edu_res.data and len(edu_res.data) > 0:
+            profile["education"] = edu_res.data
+        else:
+            profile["education"] = FALLBACK_EDUCATION
+    except Exception:
+        profile["education"] = FALLBACK_EDUCATION
     
     return ResumeResponse.model_validate(profile)
+
+
+@router.get(
+    "/references",
+    response_model=list[Reference],
+    summary="Récupérer les références / recommandations",
+    description="Retourne la liste des personnes qui recommandent Amaury "
+                "(tuteurs, enseignants, collègues).",
+)
+def get_references() -> list[Reference]:
+    """Récupère les références depuis Supabase, avec fallback sur les données locales."""
+    try:
+        response = supabase.table("references").select("*").execute()
+        if response.data and len(response.data) > 0:
+            return [Reference.model_validate(r) for r in response.data]
+    except Exception:
+        pass
+    
+    # Fallback : données locales à compléter
+    return [Reference.model_validate(r) for r in FALLBACK_REFERENCES]
+
+
+@router.get(
+    "/narrative",
+    response_model=PortfolioNarrative,
+    summary="Récupérer le narratif introspectif",
+    description="Retourne le récit narratif du parcours d'Amaury : objectif, spécialité, "
+                "réflexions, difficultés surmontées et compétences PN.",
+)
+def get_narrative() -> PortfolioNarrative:
+    """Récupère le narratif depuis Supabase, avec fallback sur les données locales."""
+    try:
+        response = supabase.table("narrative").select("*").eq("id", "main").single().execute()
+        if response.data:
+            return PortfolioNarrative.model_validate(response.data)
+    except Exception:
+        pass
+    
+    # Fallback : données locales à compléter
+    return PortfolioNarrative.model_validate(FALLBACK_NARRATIVE)
 
 
 @router.post("/feedback", tags=["Interaction"], summary="Envoyer un feedback")
@@ -115,7 +283,11 @@ def post_question(question: str):
 
 
 @router.post("/contact", tags=["Interaction"], summary="Envoyer un message de contact")
-def post_contact(name: str, email: str, message: str):
+def post_contact(
+    name: str = Body(...),
+    email: str = Body(...),
+    message: str = Body(...)
+):
     """Enregistre une demande de contact et envoie un email."""
     # 1. Enregistrement en base de données (Supabase)
     supabase.table("contact_requests").insert({

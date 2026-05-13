@@ -16,7 +16,7 @@ const groqProvider = createOpenAI({
 
 const openrouter = createOpenAI({
   baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API!,
+  apiKey: process.env.OPENROUTER_API || "",
   headers: {
     "HTTP-Referer": "https://www.portfolioamaurylevan.dev",
     "X-Title": "Portfolio Amaury",
@@ -34,26 +34,41 @@ COORDONNÉES :
 - Téléphone : 06 46 29 15 39
 - Localisation : Amiens / Beauvais
 
+CONTEXTE IMPORTANT :
+Ce portfolio est présenté dans le cadre d'une évaluation par un professeur de communication / projet professionnel et personnel. L'évaluation porte sur l'introspection, la réflexion sur le parcours, et la capacité à se présenter de manière attrayante et pratique.
+
 RÈGLES DE PRÉSENTATION DU PARCOURS (Quand on demande de parler d'Amaury) :
-- Appelle 'get_resume' avec include_experiences=false.
+- Appelle 'get_resume' avec include_experiences=true.
 - Raconte une histoire (narratif) de ses expériences les plus réussies.
 - Mets en avant sa spécialité, son domaine de prédilection et le métier envisagé.
 - Ajoute une réflexion sur son parcours : compétences acquises, difficultés surmontées (adaptation, autonomie, innovation, relationnel).
 - Analyse le "comment et pourquoi" de ses choix.
 - Parle des recommandations ou références (tuteurs, enseignants, collègues) de manière subtile.
 - L'objectif est de montrer le "Moi social" d'Amaury de façon attrayante et pratique pour un recruteur.
-- Ajoute une citation ou une réflexion qui le résume et le représente.
+
+RÈGLES POUR LE NARRATIF / PORTFOLIO INTROSPECTIF :
+- Quand on demande le parcours en détail, la réflexion, l'introspection, les choix de vie, la vision → appelle 'get_narrative' immédiatement.
+- Le narratif contient : objectif pro, spécialité, métier visé, citation personnelle, récit introspectif, réflexion sur les acquis, difficultés surmontées, et les compétences PN du BUT.
+- Après réception des données narratives, présente-les de façon vivante et personnelle. Mets en valeur les moments clés.
+
+RÈGLES POUR LES RÉFÉRENCES :
+- Quand on demande les références, recommandations, qui peut attester de ses capacités → appelle 'get_references' immédiatement.
+- Présente chaque référence avec sa citation et son contexte de relation.
 
 RÈGLES GÉNÉRALES :
 1. COMPÉTENCES → appelle 'get_skills' immédiatement (utilise le filtre de catégorie si on demande un domaine précis).
 2. PROJETS → appelle 'get_projects' immédiatement.
 3. PARCOURS/CV/ALTERNANCE → appelle 'get_resume' immédiatement (utilise les filtres pour affiner).
-4. N'écris AUCUN texte d'intro avant d'appeler un outil.
-5. Après réception des données, fais une réponse TRÈS CONCISE (2 ou 3 phrases maximum), structurée et chaleureuse. Va droit au but.
-6. CONTACT → utilise 'show_contact_form' pour afficher le formulaire interactif à l'utilisateur.
-7. Pour les questions simples, réponds directement sans outil.
-8. N'utilise PAS d'émojis (ou très exceptionnellement) dans le texte généré.
-9. Ne fais JAMAIS de tableaux Markdown (utilise uniquement du texte ou des listes à puces).`;
+4. NARRATIF/RÉFLEXION/INTROSPECTION/VISION → appelle 'get_narrative' immédiatement.
+5. RÉFÉRENCES/RECOMMANDATIONS → appelle 'get_references' immédiatement.
+6. N'écris AUCUN texte d'intro avant d'appeler un outil.
+7. Après réception des données, fais une réponse TRÈS CONCISE (2 ou 3 phrases maximum), structurée et chaleureuse. Va droit au but.
+8. CONTACT → utilise 'show_contact_form' pour afficher le formulaire interactif à l'utilisateur.
+9. Pour les questions simples, réponds directement sans outil.
+10. N'utilise PAS d'émojis (ou très exceptionnellement) dans le texte généré.
+11. Ne fais JAMAIS de tableaux Markdown (utilise uniquement du texte ou des listes à puces).
+12. Si on te demande "les difficultés surmontées", "l'adaptation", "l'autonomie", "l'innovation" → appelle 'get_narrative'.
+13. Si on te demande les "compétences PN", le "programme national", les "compétences attendues" → appelle 'get_narrative'.`;
 
 // ─── Modèles IA ────────────────────────────────────────────
 const MODELS = [
@@ -145,12 +160,40 @@ const tools = {
         } else if (filter && data.experiences) {
           const f = filter.toLowerCase();
           data.experiences = data.experiences.filter((exp: any) =>
-            exp.company.toLowerCase().includes(f) || exp.title.toLowerCase().includes(f) || exp.description.toLowerCase().includes(f)
+            exp.company.toLowerCase().includes(f) || exp.role.toLowerCase().includes(f)
           );
         }
         return data;
       } catch {
         return { error: "Le CV est temporairement indisponible." };
+      }
+    },
+  }),
+
+  get_references: tool({
+    description: "Récupère les recommandations et références d'Amaury (tuteurs, enseignants, collègues qui attestent de ses capacités).",
+    parameters: z.object({}),
+    execute: async () => {
+      console.log("[Tool] get_references");
+      try {
+        const res = await fetchWithTimeout(`${BACKEND_URL}/api/references`);
+        return await res.json();
+      } catch {
+        return { error: "Les références sont temporairement indisponibles." };
+      }
+    },
+  }),
+
+  get_narrative: tool({
+    description: "Récupère le narratif introspectif du parcours d'Amaury : objectif professionnel, spécialité, métier envisagé, citation personnelle, récit détaillé, réflexion sur les acquis, difficultés surmontées, et compétences du Programme National BUT Informatique.",
+    parameters: z.object({}),
+    execute: async () => {
+      console.log("[Tool] get_narrative");
+      try {
+        const res = await fetchWithTimeout(`${BACKEND_URL}/api/narrative`);
+        return await res.json();
+      } catch {
+        return { error: "Le narratif est temporairement indisponible." };
       }
     },
   }),

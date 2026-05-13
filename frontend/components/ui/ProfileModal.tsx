@@ -1,11 +1,13 @@
+"use client";
+
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, MapPin, Mail, Github, Linkedin, Briefcase } from 'lucide-react';
-import Image from 'next/image';
+import { X, User, MapPin, Mail, Github, Linkedin, Briefcase, Sparkles } from 'lucide-react';
+import type { ResumeResponse } from '@/lib/types';
 
 interface ProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  resume: any;
+  resume: ResumeResponse;
 }
 
 export function ProfileModal({ isOpen, onClose, resume }: ProfileModalProps) {
@@ -74,10 +76,15 @@ export function ProfileModal({ isOpen, onClose, resume }: ProfileModalProps) {
                 <p className="text-stone-700 dark:text-zinc-300 leading-relaxed text-sm">
                   {resume.summary}
                 </p>
+                {/* Citation – À COMPLÉTER par Amaury avec sa propre citation */}
                 <div className="mt-4 p-4 rounded-xl bg-orange-50 dark:bg-orange-500/5 border border-orange-100 dark:border-orange-500/10">
-                  <p className="text-sm text-stone-700 dark:text-zinc-300 italic">
-                    "Le code est la musique de la logique, et j'en compose chaque jour."
-                  </p>
+                  <div className="flex items-start gap-2">
+                    <Sparkles size={14} className="text-orange-500 mt-0.5 shrink-0" />
+                    <p className="text-sm text-stone-700 dark:text-zinc-300 italic">
+                      {/* À COMPLÉTER – Remplace cette citation par une qui te représente vraiment */}
+                      &ldquo;À COMPLÉTER – Ajoute ici une citation ou réflexion personnelle qui te résume et te représente. Ça peut être une phrase d&apos;un auteur qui t&apos;inspire ou ta propre philosophie.&rdquo;
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -86,7 +93,8 @@ export function ProfileModal({ isOpen, onClose, resume }: ProfileModalProps) {
                   <Briefcase size={16} /> Ma vision & Parcours
                 </h3>
                 <p className="text-stone-700 dark:text-zinc-300 leading-relaxed text-sm">
-                  Passionné par l'innovation et la résolution de problèmes, je cherche toujours à rendre les processus plus intelligents. J'apprends continuellement de nouvelles technologies, notamment Python, React, et l'IA, pour construire des expériences modernes et performantes. Mon objectif est d'intégrer des équipes dynamiques où je peux contribuer activement au développement de solutions ambitieuses.
+                  {/* À COMPLÉTER – Enrichis ce texte avec ta vraie vision */}
+                  Passionné par l&apos;innovation et la résolution de problèmes, je cherche toujours à rendre les processus plus intelligents. J&apos;apprends continuellement de nouvelles technologies, notamment Python, React, et l&apos;IA, pour construire des expériences modernes et performantes. Mon objectif est d&apos;intégrer des équipes dynamiques où je peux contribuer activement au développement de solutions ambitieuses.
                 </p>
               </div>
             </div>

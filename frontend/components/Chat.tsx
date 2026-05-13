@@ -5,19 +5,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, Loader2, Bot, User, Sparkles, Trash2, AlertCircle } from "lucide-react";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { MarkdownText } from "./MarkdownText";
-import { ProjectsGrid, SkillsGrid, ResumeDisplay, ContactForm } from "@/components/GenerativeUI";
-import type { ResumeResponse } from "@/lib/types";
+import { ProjectsGrid, SkillsGrid, ResumeDisplay, ContactForm, ReferencesDisplay, NarrativeDisplay } from "@/components/GenerativeUI";
+import type { ResumeResponse, Reference, PortfolioNarrative } from "@/lib/types";
 
 const SUGGESTIONS = [
   { text: "Présente-moi Amaury", emoji: "👋" },
+  { text: "Raconte son parcours en détail", emoji: "📖" },
   { text: "Quels sont ses projets ?", emoji: "🚀" },
   { text: "Ses projets en Python ?", emoji: "🐍" },
   { text: "Quelles sont ses compétences ?", emoji: "⚡" },
   { text: "Ses compétences Backend", emoji: "💻" },
-  { text: "Ses compétences Frontend", emoji: "🎨" },
-  { text: "Ses compétences en Data", emoji: "📊" },
   { text: "Quel est son rôle à la CCMO ?", emoji: "💼" },
-  { text: "Quelles sont ses anciennes expériences ?", emoji: "⏪" },
+  { text: "Ses difficultés surmontées", emoji: "💪" },
+  { text: "Ses références et recommandations", emoji: "🌟" },
+  { text: "Ses compétences PN du BUT", emoji: "🎯" },
   { text: "Parle-moi de ses études", emoji: "🎓" },
   { text: "Comment le contacter ?", emoji: "📫" },
 ];
@@ -89,6 +90,12 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading }: {
               )}
               {tool.toolName === "get_resume" && (
                 <ResumeDisplay resume={tool.result as ResumeResponse} />
+              )}
+              {tool.toolName === "get_references" && (
+                <ReferencesDisplay references={tool.result as Reference[]} />
+              )}
+              {tool.toolName === "get_narrative" && (
+                <NarrativeDisplay narrative={tool.result as PortfolioNarrative} />
               )}
               {tool.toolName === "show_contact_form" && (
                 <ContactForm />

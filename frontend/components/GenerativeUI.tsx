@@ -6,7 +6,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { LayoutGrid, Cpu, User, Mail, CheckCircle2, Github, Linkedin, Download, Globe, Send, Loader2 } from "lucide-react";
+import { LayoutGrid, Cpu, User, Mail, CheckCircle2, Github, Linkedin, Download, Globe, Send, Loader2, BookOpen, Quote, Target, GraduationCap, Lightbulb, Shield, Sparkles } from "lucide-react";
 
 import { ProjectCard } from "@/components/ui/ProjectCard";
 import { ProjectModal } from "@/components/ui/ProjectModal";
@@ -14,7 +14,9 @@ import { ExperienceModal } from "@/components/ui/ExperienceModal";
 import { ProfileModal } from "@/components/ui/ProfileModal";
 import { SkillBadge } from "@/components/ui/SkillBadge";
 import { ExperienceCard } from "@/components/ui/ExperienceCard";
-import type { Project, Skill, ResumeResponse, Experience } from "@/lib/types";
+import { ReferenceCard } from "@/components/ui/ReferenceCard";
+import { EducationCard } from "@/components/ui/EducationCard";
+import type { Project, Skill, ResumeResponse, Experience, Reference, PortfolioNarrative, Education } from "@/lib/types";
 
 // ─── Sous-composants ────────────────────────────────────────────────────────
 
@@ -139,6 +141,18 @@ export function ResumeDisplay({ resume }: { resume: ResumeResponse }) {
         </div>
       </button>
 
+      {/* Éducation */}
+      {resume?.education && Array.isArray(resume.education) && resume.education.length > 0 && (
+        <div>
+          <p className="text-[10px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-widest mb-3">Formation</p>
+          <div className="space-y-3">
+            {resume.education.map((edu, i) => (
+              <EducationCard key={edu.id} education={edu} index={i} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Expériences */}
       {resume?.experiences && Array.isArray(resume.experiences) && resume.experiences.length > 0 && (
         <div>
@@ -170,6 +184,141 @@ export function ResumeDisplay({ resume }: { resume: ResumeResponse }) {
   );
 }
 
+// ─── Références / Recommandations ─────────────────────────────────────────────
+
+export function ReferencesDisplay({ references }: { references: Reference[] }) {
+  if (!Array.isArray(references) || !references.length) {
+    return <p className="text-sm text-stone-400 dark:text-zinc-500 italic">Aucune référence disponible.</p>;
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full">
+      <SectionHeader icon={Quote} label={`${references.length} recommandation${references.length > 1 ? "s" : ""}`} />
+      <div className="grid grid-cols-1 gap-3">
+        {references.map((ref, i) => (
+          <ReferenceCard key={ref.id} reference={ref} index={i} />
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Narratif introspectif ────────────────────────────────────────────────────
+
+export function NarrativeDisplay({ narrative }: { narrative: PortfolioNarrative }) {
+  if (!narrative || typeof narrative !== 'object') {
+    return <p className="text-sm text-stone-400 dark:text-zinc-500 italic">Narratif indisponible.</p>;
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full space-y-4">
+
+      {/* Citation personnelle */}
+      <div className="rounded-2xl border border-orange-200 dark:border-orange-500/20 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-500/10 dark:to-amber-500/5 p-5 shadow-sm">
+        <div className="flex items-start gap-3">
+          <div className="rounded-lg bg-orange-100 dark:bg-orange-500/20 p-2 shrink-0">
+            <Sparkles size={16} className="text-orange-600 dark:text-orange-400" />
+          </div>
+          <div>
+            <p className="text-stone-700 dark:text-zinc-200 text-sm italic leading-relaxed">
+              &ldquo;{narrative.personal_quote}&rdquo;
+            </p>
+            <p className="text-orange-600 dark:text-orange-400 text-xs font-medium mt-2">— Amaury Le Van</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Objectif + Spécialité + Métier visé */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-white/5 p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <Target size={14} className="text-orange-500" />
+            <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-widest">Objectif</span>
+          </div>
+          <p className="text-stone-700 dark:text-zinc-300 text-xs leading-relaxed">{narrative.objective}</p>
+        </div>
+        <div className="rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-white/5 p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <Lightbulb size={14} className="text-purple-500" />
+            <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-widest">Spécialité</span>
+          </div>
+          <p className="text-stone-700 dark:text-zinc-300 text-xs leading-relaxed">{narrative.specialty}</p>
+        </div>
+        <div className="rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-white/5 p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <GraduationCap size={14} className="text-emerald-500" />
+            <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-widest">Métier visé</span>
+          </div>
+          <p className="text-stone-700 dark:text-zinc-300 text-xs leading-relaxed">{narrative.target_job}</p>
+        </div>
+      </div>
+
+      {/* Narratif principal */}
+      <div className="rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-white/5 p-5 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
+          <BookOpen size={14} className="text-orange-500" />
+          <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-widest">Mon parcours</span>
+        </div>
+        <div className="text-stone-600 dark:text-zinc-300 text-sm leading-relaxed whitespace-pre-line">
+          {narrative.narrative_text}
+        </div>
+      </div>
+
+      {/* Réflexion sur les acquis */}
+      {narrative.skills_reflection && (
+        <div className="rounded-2xl border border-purple-200 dark:border-violet-500/20 bg-purple-50/50 dark:bg-violet-500/5 p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Lightbulb size={14} className="text-purple-500 dark:text-violet-400" />
+            <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-widest">Réflexion sur mes acquis</span>
+          </div>
+          <div className="text-stone-600 dark:text-zinc-300 text-sm leading-relaxed whitespace-pre-line">
+            {narrative.skills_reflection}
+          </div>
+        </div>
+      )}
+
+      {/* Difficultés surmontées */}
+      {narrative.difficulties_overcome && (
+        <div className="rounded-2xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-500/5 p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Shield size={14} className="text-emerald-500 dark:text-emerald-400" />
+            <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-widest">Difficultés surmontées</span>
+          </div>
+          <div className="text-stone-600 dark:text-zinc-300 text-sm leading-relaxed whitespace-pre-line">
+            {narrative.difficulties_overcome}
+          </div>
+        </div>
+      )}
+
+      {/* Compétences PN */}
+      {narrative.pn_competencies && narrative.pn_competencies.length > 0 && (
+        <div className="rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-white/5 p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 size={14} className="text-orange-500" />
+            <span className="text-[10px] font-bold text-stone-500 dark:text-zinc-500 uppercase tracking-widest">Compétences PN – BUT Informatique</span>
+          </div>
+          <div className="space-y-3">
+            {narrative.pn_competencies.map((comp, i) => (
+              <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-stone-50 dark:bg-white/5 border border-stone-100 dark:border-white/5">
+                <div className="w-6 h-6 rounded-md bg-orange-100 dark:bg-orange-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400">{i + 1}</span>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-stone-900 dark:text-white">{comp.competence}</h4>
+                  <p className="text-xs text-purple-600 dark:text-violet-300 font-medium mt-0.5">Niveau : {comp.level}</p>
+                  <p className="text-xs text-stone-500 dark:text-zinc-400 mt-1 leading-relaxed">{comp.evidence}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+// ─── Formulaire de contact ────────────────────────────────────────────────────
+
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
 
@@ -181,10 +330,11 @@ export function ContactForm() {
 
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-      const url = new URL(`${backendUrl}/api/contact`);
-      Object.entries(data).forEach(([k, v]) => url.searchParams.set(k, v as string));
-      
-      const res = await fetch(url.toString(), { method: "POST" });
+      const res = await fetch(`${backendUrl}/api/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
       if (res.ok) setStatus("success");
       else setStatus("error");
     } catch {

@@ -33,6 +33,41 @@ export interface Experience {
   tags: string[];
   location?: string;
   website_url?: string;
+  narrative_detail?: string;
+}
+
+export interface Education {
+  id: string;
+  institution: string;
+  degree: string;
+  duration: string;
+  description: string;
+  location?: string;
+}
+
+export interface Reference {
+  id: string;
+  name: string;
+  role: string;
+  company: string;
+  quote: string;
+  relationship: string;
+}
+
+export interface PortfolioNarrative {
+  title: string;
+  objective: string;
+  specialty: string;
+  target_job: string;
+  personal_quote: string;
+  narrative_text: string;
+  skills_reflection: string;
+  difficulties_overcome: string;
+  pn_competencies: Array<{
+    competence: string;
+    level: string;
+    evidence: string;
+  }>;
 }
 
 export interface ResumeResponse {
@@ -45,6 +80,6 @@ export interface ResumeResponse {
   linkedin: string | null;
   location: string;
   experiences: Experience[];
-  education: Record<string, unknown>[];
+  education: Education[];
   resume_url: string | null;
 }
