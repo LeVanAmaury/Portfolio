@@ -58,69 +58,45 @@ FALLBACK_NARRATIVE = {
     "specialty": "Le développement python basic (script d'automatisation par scheduler)",
     "target_job": "Chef de projet",
     "personal_quote": "Exister est un fait, vivre est un art. Fréderic Lenoir", 
-    "narrative_text": """À COMPLÉTER – C'est le cœur de ton portfolio. Écris 1 page de narratif introspectif.
+    "narrative_text": """
 
-Guide pour l'écriture :
-
-1. D'OÙ TU VIENS : Raconte comment tu es arrivé dans l'informatique. Qu'est-ce qui t'a donné envie ? Un événement déclencheur ? Une passion d'enfance ?
-
-2. TON PARCOURS BUT : Les moments clés de BUT1 et BUT2. Qu'est-ce qui t'a marqué ? Un projet, un cours, une rencontre ?
-
-3. TES EXPÉRIENCES LES PLUS RÉUSSIES (1-2 en détail) :
-   - Le contexte : où, quand, avec qui
-   - Ce que tu as fait concrètement
-   - Les défis que tu as rencontrés
-   - Ce que tu as appris
-   - Pourquoi c'est ta fierté
-
-4. L'ALTERNANCE À CCMO : Comment tu as vécu cette expérience. Ce que tu as apporté, ce que tu as reçu.
-
-5. TA VISION : Où tu te vois dans 3-5 ans. Quel type de projets te passionnent.""",
-    "skills_reflection": """À COMPLÉTER – Réflexion sur tes acquis.
-
-Exemples de questions à te poser :
-- Quelles compétences as-tu acquises que tu n'avais pas en arrivant en BUT ?
-- Qu'est-ce qui te surprend dans ta propre progression ?
-- Quelles sont les compétences que tu maîtrises le mieux et pourquoi ?
-- Comment tes compétences techniques et humaines se complètent-elles ?""",
-    "difficulties_overcome": """À COMPLÉTER – Difficultés surmontées.
-
-Le prof attend de l'introspection sur :
-- ADAPTATION : Comment tu t'es adapté à de nouveaux environnements (entreprise, projets inconnus)
-- AUTONOMIE : Des moments où tu as dû te débrouiller seul
-- INNOVATION : Des solutions créatives que tu as trouvées
-- RELATIONNEL : Comment tu gères le travail en équipe, la communication
-- CONNAISSANCE DES PARCOURS/MÉTIERS : Comment ta vision du métier a évolué""",
+    Depuis petit j'ai toujours aimé beaucoup de choses différentes et je ne savais pas me décider entre ce que je voulais/j'aimais faire, malgré ça j'ai toujours été quelqu'un d'assez calme et qui a le sang froid dans les situations d'urgence.
+    Je m'intéresse toujours à comment fonctionne les choses même les plus annodines comme comment fonctionne ma machine a café ou mon réveil. C'est de la qu'est venue ma passion pour l'informatique, de plus j'aime beaucoup faire des choses utiles et ça m'a encore soutenu dans l'idée de partir en informatique.
+    J'ai fais un parcours assez classique puis je suis arrivé en BUT Informatique et j'ai eu des projets en équipe à faire, j'ai eu des devoirs basés code et j'ai rencontré les premières difficultés dans le code. Mais j'ai aussi rencontré des amis qui m'ont poussé et beaucoup aidé.
+    L'alternance a beaucoup participé à mon épannouissement dans le code car j'ai la partie pratique et théorique, les premières expériences dans l'informatique et tout ce qui va avec, ça m'a permis de grandir au niveau de mon attitude professionnelle.
+    Les choses dont je suis le plus fier dans cette passion qui est le code c'est d'avoir réussi à aidé ma famille au quotidien avec mes projets.
+    Dans 5 ans je me vois en tant que chef de projet ou proche de ce poste."""
+    ,
     "pn_competencies": [
         {
             "competence": "Réaliser un développement d'application",
-            "level": "À COMPLÉTER – Ton niveau (Débutant/Intermédiaire/Avancé)",
-            "evidence": "À COMPLÉTER – Exemples concrets de projets/réalisations qui prouvent cette compétence"
+            "level": "Intermédiaire – Ton niveau (Débutant/Intermédiaire/Avancé)",
+            "evidence": "Le projet de SAE Covoiturage – Exemples concrets de projets/réalisations qui prouvent cette compétence"
         },
         {
             "competence": "Optimiser des applications",
-            "level": "À COMPLÉTER",
-            "evidence": "À COMPLÉTER"
+            "level": "Intermédiarie/Avancé",
+            "evidence": "App Maison"
         },
         {
             "competence": "Administrer des systèmes informatiques",
-            "level": "À COMPLÉTER",
-            "evidence": "À COMPLÉTER"
+            "level": "Débutant/Intermédiaire",
+            "evidence": "Ce portfolio"
         },
         {
             "competence": "Gérer des données",
-            "level": "À COMPLÉTER",
-            "evidence": "À COMPLÉTER"
+            "level": "Intermédiaire",
+            "evidence": "Le projet de SAE Covoiturage"
         },
         {
             "competence": "Conduire un projet",
-            "level": "À COMPLÉTER",
-            "evidence": "À COMPLÉTER"
+            "level": "Débutant/Intermédiaire",
+            "evidence": "Le projet de SAE Covoiturage"
         },
         {
             "competence": "Collaborer au sein d'une équipe",
-            "level": "À COMPLÉTER",
-            "evidence": "À COMPLÉTER"
+            "level": "Intermédiaire/Avancé",
+            "evidence": "Le projet de SAE Covoiturage"
         }
     ]
 }

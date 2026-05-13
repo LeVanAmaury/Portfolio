@@ -82,7 +82,7 @@ export function ProfileModal({ isOpen, onClose, resume }: ProfileModalProps) {
                     <Sparkles size={14} className="text-orange-500 mt-0.5 shrink-0" />
                     <p className="text-sm text-stone-700 dark:text-zinc-300 italic">
                       {/* À COMPLÉTER – Remplace cette citation par une qui te représente vraiment */}
-                      &ldquo;À COMPLÉTER – Ajoute ici une citation ou réflexion personnelle qui te résume et te représente. Ça peut être une phrase d&apos;un auteur qui t&apos;inspire ou ta propre philosophie.&rdquo;
+                      &ldquo;Exister est un fait, vivre est un art - Frédéric Lenoir.&rdquo;
                     </p>
                   </div>
                 </div>
