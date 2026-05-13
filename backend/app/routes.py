@@ -26,54 +26,38 @@ FALLBACK_EDUCATION = [
     {
         "id": "but-info",
         "institution": "UPJV – IUT d'Amiens",
-        "degree": "BUT Informatique – Parcours Réalisation d'Applications",
-        "duration": "2023 – 2026",
-        "description": "À COMPLÉTER – Décris ta formation : les matières clés, les projets marquants, ce que tu as appris de plus important.",
+        "degree": "BUT Informatique – Parcours Réalisation d'Applications en alternance",
+        "duration": "2024 – 2027",
+        "description": "Lors de ces années de formation en BUT Informatique j'ai appris a coder réellement, j'ai appris l'algorithmie, l'optimisation et j'ai surtout appris des nouveaux languages et la rigueur que certains demandent. Ce BUT m'a surtout appris à travailler en équipe sur les différents projets.",
         "location": "Amiens"
     },
     {
         "id": "bac",
-        "institution": "À COMPLÉTER – Nom du lycée",
-        "degree": "À COMPLÉTER – Baccalauréat (filière)",
-        "duration": "À COMPLÉTER – Année d'obtention",
-        "description": "À COMPLÉTER – Mentionne ta mention, tes spécialités, ce qui t'a donné envie de poursuivre en informatique.",
-        "location": "À COMPLÉTER"
+        "institution": "Lycée Paul Langevin – Nom du lycée",
+        "degree": "Baccalauréat STI2D (Technologique) – Baccalauréat (filière)",
+        "duration": "2024 – Année d'obtention",
+        "description": "J'ai eu ce bac STI2D (SIN) avec mention Bien. J'ai toujours aimé l'informatique par sa créativité et le fait que l'utilisation des skills informatiques est infini. Je me passione pour les nouvelles choses et les expériences et l'informatique me permet d'avoir ce que je recherche.",
+        "location": "Beauvais"
     }
 ]
 
 FALLBACK_REFERENCES = [
     {
         "id": "ref-tuteur-ccmo",
-        "name": "À COMPLÉTER – Nom du tuteur",
+        "name": "Paul Mouchot – Nom du tuteur",
         "role": "Tuteur d'entreprise",
         "company": "CCMO Mutuelle",
-        "quote": "À COMPLÉTER – Demande une recommandation à ton tuteur ou écris ce qu'il dirait de toi.",
-        "relationship": "Tuteur lors de mon alternance en développement Python à CCMO Mutuelle (2024-2025)"
-    },
-    {
-        "id": "ref-enseignant",
-        "name": "À COMPLÉTER – Nom d'un enseignant",
-        "role": "Enseignant",
-        "company": "UPJV – IUT d'Amiens",
-        "quote": "À COMPLÉTER – Citation ou recommandation de cet enseignant.",
-        "relationship": "À COMPLÉTER – Professeur de [matière] qui a suivi mon parcours en BUT1/BUT2"
-    },
-    {
-        "id": "ref-collegue",
-        "name": "À COMPLÉTER – Nom d'un collègue ou collaborateur",
-        "role": "À COMPLÉTER – Collègue / Chef de projet",
-        "company": "À COMPLÉTER",
-        "quote": "À COMPLÉTER – Ce que cette personne dirait de ta collaboration.",
-        "relationship": "À COMPLÉTER – Collaboration sur quel projet, dans quel contexte"
+        "quote": "Amaury est investi dans le travail et n'hésite pas à proposer de nouvelles idées qu'elles soient bonnes ou mauvaises, il propose et réajuste selon les remarques.",
+        "relationship": "Tuteur lors de mon alternance en développement Python à CCMO Mutuelle (2025-2027)"
     }
 ]
 
 FALLBACK_NARRATIVE = {
     "title": "Mon parcours vers le développement – Curiosité, persévérance et passion",
-    "objective": "À COMPLÉTER – Quel est ton objectif professionnel ? Ex: Devenir développeur Python/IA dans une entreprise innovante, contribuer à des projets à impact...",
-    "specialty": "À COMPLÉTER – Ton domaine de prédilection. Ex: Développement Backend Python, automatisation, data engineering...",
-    "target_job": "À COMPLÉTER – Le métier que tu vises. Ex: Développeur Python, Data Engineer, Développeur Full-Stack...",
-    "personal_quote": "À COMPLÉTER – Une citation ou réflexion personnelle qui te résume. Ex: une phrase d'un auteur qui t'inspire, ou ta propre philosophie.",
+    "objective": "Mon objectif personnel c'est de toujours réussir à m'amuser dans mon travail et de faire en sorte que la vie de mes collègues devienne plus simple.",
+    "specialty": "Le développement python basic (script d'automatisation par scheduler)",
+    "target_job": "Chef de projet",
+    "personal_quote": "Exister est un fait, vivre est un art. Fréderic Lenoir", 
     "narrative_text": """À COMPLÉTER – C'est le cœur de ton portfolio. Écris 1 page de narratif introspectif.
 
 Guide pour l'écriture :

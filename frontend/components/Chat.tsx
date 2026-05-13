@@ -35,6 +35,11 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading }: {
   const isUser = role === "user";
   const showTools = !isLast || !isLoading;
 
+  // Détection d'une réponse assistant vide (pas de texte, pas de résultat d'outil)
+  const hasToolResults = toolInvocations?.some(t => t.state === "result" && t.result);
+  const hasToolCalls = toolInvocations?.some(t => t.state === "call");
+  const isEmptyAssistant = !isUser && !isLoading && !content && !hasToolResults && !hasToolCalls;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -56,6 +61,13 @@ function MessageBubble({ role, content, toolInvocations, isLast, isLoading }: {
 
       {/* Contenu */}
       <div className={`flex flex-col gap-3 max-w-[85%] ${isUser ? "items-end" : "items-start"}`}>
+        {/* Message vide → afficher un message de retry */}
+        {isEmptyAssistant ? (
+          <div className="rounded-2xl rounded-tl-sm bg-white dark:bg-white/10 border border-stone-200 dark:border-white/10 px-4 py-2.5 text-sm text-stone-500 dark:text-zinc-400 shadow-sm">
+            L&apos;IA n&apos;a pas pu répondre. Renvoyez votre message pour réessayer.
+          </div>
+        ) : null}
+
         {/* Texte */}
         {content ? (
           <div className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed
